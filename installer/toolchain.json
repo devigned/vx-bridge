@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "wix_version": "3.14.1",
+  "wix_release": "https://github.com/wixtoolset/wix3/releases/tag/wix3141rtm",
+  "wix_archive_url": "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip",
+  "wix_archive_sha256": "6ac824e1642d6f7277d0ed7ea09411a508f6116ba6fae0aa5f2c7daa2ff43d31",
+  "wix_license": "MS-RL",
+  "wix_build_runtime": ".NET Framework 4.5 or later, CLR 4, on the Windows builder only; no .NET SDK",
+  "community_security_support_ended": "2025-02-06",
+  "ended_support_accepted_by_owner": true,
+  "reference": "https://github.com/WireGuard/wireguard-windows/blob/6ece77bc487c8aa697e3c092197621c4f3e5ccb8/installer/build.bat",
+  "cross_build_image": "ubuntu@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852",
+  "cross_compiler_package": "gcc-mingw-w64-x86-64-posix=13.2.0-6ubuntu1+26.1",
+  "cross_binutils_package": "binutils-mingw-w64-x86-64=2.41.90.20240122-1ubuntu1+11.4",
+  "cross_headers_package": "mingw-w64-x86-64-dev=11.0.1-3build1",
+  "application_runtime": "native Go windows/amd64 CGO_ENABLED=0",
+  "installer_runtime": "native Windows Installer and Windows system DLLs; no CLR",
+  "production_activation": false
+}

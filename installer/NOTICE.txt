@@ -1,0 +1,56 @@
+Native installer notices
+
+The original native Setup and callback sources in installer/setup and
+installer/managed/state.c are licensed under this repository's MIT LICENSE.
+No WireGuard shutdown/launch implementation was copied.
+
+WiX 3.14.1 is a build tool, not an installed application dependency. Its verified
+binary archive includes LICENSE.TXT (Microsoft Reciprocal License, MS-RL).
+Community security support ended 2025-02-06; the owner explicitly accepted that
+limitation. No private extended-support entitlement is implied.
+
+The reviewed cross compiler is GCC/MinGW-w64 from Ubuntu's pinned packages.
+Compiler tools are not redistributed. libgcc runtime portions, if included, are
+covered by GCC's GPLv3 plus GCC Runtime Library Exception 3.1:
+https://www.gnu.org/licenses/gcc-exception-3.1.html
+Setup and its callback DLL have no libgcc/libwinpthread runtime DLL dependency;
+their imported DLLs are Windows system DLLs. The installer ZIP includes the
+actual pinned GCC and MinGW header package copyright records in
+MINGW-COPYRIGHT.txt. Compiler versions and source hashes are retained as build
+evidence, not installed application dependencies.
+
+MinGW-w64 portions are subject to file-specific licenses, including public-domain
+notices and the Zope Public License 2.1 reproduced below, as recorded in the
+reviewed Ubuntu mingw-w64 package copyright file.
+
+Copyright: 2009-2016 the mingw-w64 project
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions in source code must retain the accompanying copyright
+   notice, this list of conditions, and the following disclaimer.
+2. Redistributions in binary form must reproduce the accompanying copyright
+   notice, this list of conditions, and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Names of the copyright holders must not be used to endorse or promote
+   products derived from this software without prior written permission
+   from the copyright holders.
+4. The right to distribute this software or to use it for any purpose does
+   not give you the right to use Servicemarks (sm) or Trademarks (tm) of the
+   copyright holders. Use of them is covered by separate agreement with the
+   copyright holders.
+5. If any files are modified, you must cause the modified files to carry
+   prominent notices stating that you changed the files and the date of any
+   change.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "AS IS" AND ANY EXPRESSED
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

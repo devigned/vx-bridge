@@ -1,0 +1,171 @@
+name: Version-tag release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-release
+  cancel-in-progress: false
+
+env:
+  GOTOOLCHAIN: local
+  CGO_ENABLED: '0'
+  SETUP_BUILD_PROFILE: normal
+  WORKFLOW_REVISION: ${{ github.workflow_sha }}
+  GIT_CONFIG_COUNT: '2'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+  GIT_CONFIG_KEY_1: safe.directory
+  GIT_CONFIG_VALUE_1: ${{ github.workspace }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  inputs:
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+    timeout-minutes: 20
+    outputs:
+      revision: ${{ steps.source.outputs.revision }}
+      version: ${{ steps.source.outputs.version }}
+      tag-oid: ${{ steps.source.outputs.tag-oid }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - name: Provision the pinned Linux build host
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends git ca-certificates make jq gh
+      - name: Reject deleted or moved refs before checkout
+        run: |
+          jq -e '.created == true and .deleted == false and .forced == false and
+            .before == "0000000000000000000000000000000000000000"' "$GITHUB_EVENT_PATH" >/dev/null ||
+            { echo 'Only a newly created version tag may release' >&2; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.after }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Resolve canonical tag and require its exact commit in main
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: make release-resolve
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: .go-version
+          cache: false
+      - name: Build and verify tagged application and native inputs once
+        env:
+          REVISION: ${{ steps.source.outputs.revision }}
+          RELEASE_VERSION: ${{ steps.source.outputs.version }}
+        run: make install-setup-toolchain build-setup-input
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        id: upload
+        with:
+          name: vx-bridge-tag-input-${{ steps.source.outputs.revision }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/setup-build-input/*
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+          overwrite: false
+
+  installer:
+    needs: inputs
+    runs-on: windows-2025
+    timeout-minutes: 25
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+    env:
+      REVISION: ${{ needs.inputs.outputs.revision }}
+      RELEASE_VERSION: ${{ needs.inputs.outputs.version }}
+      NATIVE_ARTIFACT_ID: ${{ needs.inputs.outputs.artifact-id }}
+      NATIVE_ARTIFACT_DIGEST: ${{ needs.inputs.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.inputs.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: .go-version
+          cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.inputs.outputs.artifact-id }}
+          path: ${{ runner.temp }}/setup-build-input
+          digest-mismatch: error
+      - name: Provide hosted GNU make
+        shell: pwsh
+        run: |
+          & 'C:\msys64\usr\bin\bash.exe' -lc 'pacman -S --needed --noconfirm make'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          'C:\msys64\usr\bin' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Author, inspect and package matching Setup/MSI without product execution
+        env:
+          BUILD_INPUT_DIR: ${{ runner.temp }}/setup-build-input
+          EVIDENCE_DIR: ${{ runner.temp }}/setup-build-evidence
+        run: make build-setup-artifacts
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        id: upload
+        with:
+          name: vx-bridge-tag-assets-${{ needs.inputs.outputs.version }}-${{ needs.inputs.outputs.revision }}
+          path: ${{ runner.temp }}/release-artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+          overwrite: false
+      - name: Retain authoring outcome and original logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vx-bridge-tag-authoring-${{ needs.inputs.outputs.revision }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/setup-build-evidence/*
+          if-no-files-found: warn
+          retention-days: 14
+          overwrite: false
+
+  publish:
+    needs: [inputs, installer]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      SOURCE_REVISION: ${{ needs.inputs.outputs.revision }}
+      RELEASE_VERSION: ${{ needs.inputs.outputs.version }}
+      TAG_OID: ${{ needs.inputs.outputs.tag-oid }}
+      ARTIFACT_ID: ${{ needs.installer.outputs.artifact-id }}
+      ARTIFACT_DIGEST: ${{ needs.installer.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.inputs.outputs.revision }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: .go-version
+          cache: false
+      - name: Recheck exact tag/source before downloading
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: make release-verify
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.installer.outputs.artifact-id }}
+          path: ${{ runner.temp }}/tag-release
+          digest-mismatch: error
+      - name: Publish only this run's verified application and matching installer assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_DIRECTORY: ${{ runner.temp }}/tag-release
+        run: make release-publish
