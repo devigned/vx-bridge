@@ -381,17 +381,17 @@ try {
     [void]$view.Execute(); $shortcuts=@{}
     while ($null -ne ($row=$view.Fetch())) {
         $id=Field $row 'StringData' 1
-        $component=if ($id -ceq 'BridgeShortcut') { 'Shortcut' } else { 'Maintenance' }
-        $target=if ($id -ceq 'BridgeShortcut') { '[INSTALLDIR]GSPconnect.exe' } else { '[VX_MAINTENANCE_EXE]' }
-        $arguments=if ($id -ceq 'BridgeShortcut') { '' } else { '/maintain' }
-        if ($id -cnotin @('BridgeShortcut','SetupShortcut') -or $shortcuts.ContainsKey($id) -or
+        $component=if ($id -ceq 'SetupShortcut') { 'Maintenance' } else { 'Shortcut' }
+        $target=if ($id -ceq 'BridgeShortcut') { '[INSTALLDIR]GSPconnect.exe' } elseif ($id -ceq 'DiagnosticsShortcut') { '[INSTALLDIR]vxbridge.exe' } else { '[VX_MAINTENANCE_EXE]' }
+        $arguments=if ($id -ceq 'BridgeShortcut') { '' } elseif ($id -ceq 'DiagnosticsShortcut') { '--diagnostics-dialog' } else { '/maintain' }
+        if ($id -cnotin @('BridgeShortcut','SetupShortcut','DiagnosticsShortcut') -or $shortcuts.ContainsKey($id) -or
             (Field $row 'StringData' 2) -cne 'ProgramMenuFolder' -or
             (Field $row 'StringData' 3) -cne $component -or (Field $row 'StringData' 4) -cne $target -or
             (Field $row 'StringData' 5) -cne $arguments) { throw 'Unexpected advertised or foreign shortcut.' }
         $shortcuts[$id]=$target
         [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($row); $row=$null
     }
-    if ($shortcuts.Count -ne 2) { throw 'Missing actual nonadvertised shortcut.' }
+    if ($shortcuts.Count -ne 3) { throw 'Missing actual nonadvertised shortcut.' }
     [void]$view.Close(); [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($view); $view=$null
     $view=$database.OpenView('SELECT `FileKey`,`Component_`,`FileName`,`DirProperty`,`InstallMode` FROM `RemoveFile`'); [void]$view.Execute()
     $row=$view.Fetch()

@@ -18,6 +18,8 @@ vxbridge - inspect build identity or control the current user's VX Bridge host
 vxbridge.exe --version
 vxbridge.exe --status
 vxbridge.exe --quit
+vxbridge.exe --diagnostics <new-absolute-local-file.zip>
+vxbridge.exe --diagnostics-dialog
 GSPconnect.exe [--desktop[=true|false]] [--target-port N]
 ```
 
@@ -51,6 +53,16 @@ Unreachable control is an error, not cached status.
 **`--quit`** requests the same guarded Quit as the tray and prints its snapshot.
 It never forces an attached or possibly attached source closed.
 
+**`--diagnostics PATH`** collects a local diagnostic ZIP into a new absolute file
+on a local drive. It never overwrites a file or creates parent directories.
+Source failures produce an explicitly partial report; output failures exit 1.
+It does not start a host, require healthy managed admission or call MSI.
+
+**`--diagnostics-dialog`** opens the native Save diagnostic report dialog.
+The installed **VX Bridge Diagnostics** shortcut uses it. Cancel exits 0 without
+collecting/saving; saved, partial and failure notices state that nothing was
+sent. Both export modes use the same [bounded privacy contract](DIAGNOSTICS.md).
+
 **`--desktop`** enables the native tray and bounded local logs in host mode.
 `--desktop=false` selects console diagnostics; the GUI distribution normally
 needs no explicit option.
@@ -63,6 +75,8 @@ Status and Quit are mutually exclusive; version cannot combine with either.
 A nondefault target port is invalid with status/Quit. Positional arguments
 are rejected. Control through the `GSPconnect.exe` basename and host startup
 through the `vxbridge.exe` basename are rejected to preserve one identity.
+Export modes also require the distinct `vxbridge.exe`; they cannot combine with
+each other, version/status/Quit, or explicit host-only options.
 The Go flag parser also supplies `-h`/`--help`; current usage handling exits 2.
 
 ### FILES
@@ -86,6 +100,8 @@ or Pending values to bypass admission.
 **0** means the requested version/control operation completed, or the host
 finished its guarded lifecycle successfully. A Quit response can return 0
 while the host still waits for Labs departure.
+Diagnostic export also returns 0 for an explicitly partial saved report, or
+ordinary save-dialog cancellation; no source is silently assumed healthy.
 
 **1** means runtime, admission, control, output, persistence, or cleanup
 failure. The operation must not be assumed complete from partial output.
@@ -101,6 +117,7 @@ From the reviewed build's own directory in PowerShell:
 .\vxbridge.exe --version
 .\vxbridge.exe --status
 .\vxbridge.exe --quit
+.\vxbridge.exe --diagnostics "$env:USERPROFILE\Documents\vx-bridge-report.zip"
 ```
 
 For an explicitly approved desktop host using the default Infinite Tees port:

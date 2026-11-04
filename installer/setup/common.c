@@ -1,11 +1,66 @@
 /* SPDX-License-Identifier: MIT */
+#define COBJMACROS
 #include "protocol.h"
+#include <shlobj.h>
 #include <sddl.h>
 #include <stdlib.h>
 #include <objbase.h>
 #include <stdio.h>
 
 static LONG diagnostic_sequence;
+
+BOOL setup_shortcut_owned(VX_CONTEXT *c,const WCHAR *name,const WCHAR *path)
+{
+	IShellLinkW *link=NULL; IPersistFile *persist=NULL;
+	HRESULT initialized=CoInitializeEx(NULL,COINIT_APARTMENTTHREADED);
+	BOOL own=SUCCEEDED(initialized),ok=own || initialized==RPC_E_CHANGED_MODE;
+	WCHAR expected[MAX_PATH],actual[MAX_PATH],arguments[MAX_PATH];
+	BOOL setup=!wcscmp(name,L"VX Bridge Setup.lnk");
+	BOOL diagnostics=!wcscmp(name,L"VX Bridge Diagnostics.lnk");
+	ok=ok && vx_path(expected,setup?c->state:c->root,setup?L"setup.exe":diagnostics?L"vxbridge.exe":L"GSPconnect.exe") &&
+		CoCreateInstance(&CLSID_ShellLink,NULL,CLSCTX_INPROC_SERVER,&IID_IShellLinkW,(void **)&link)==S_OK &&
+		IShellLinkW_QueryInterface(link,&IID_IPersistFile,(void **)&persist)==S_OK &&
+		IPersistFile_Load(persist,path,STGM_READ|STGM_SHARE_DENY_NONE)==S_OK &&
+		IShellLinkW_GetPath(link,actual,MAX_PATH,NULL,SLGP_RAWPATH)==S_OK && !_wcsicmp(actual,expected) &&
+		IShellLinkW_GetArguments(link,arguments,MAX_PATH)==S_OK &&
+		!wcscmp(arguments,setup?L"/maintain":diagnostics?L"--diagnostics-dialog":L"");
+	if(persist) IPersistFile_Release(persist);
+	if(link) IShellLinkW_Release(link);
+	if(own) CoUninitialize();
+	return ok;
+}
+
+BOOL setup_support_shortcut(VX_CONTEXT *c,BOOL required)
+{
+	WCHAR *programs=NULL,path[MAX_PATH],ancestor[MAX_PATH];
+	if(SHGetKnownFolderPath(&FOLDERID_Programs,KF_FLAG_DONT_VERIFY,c->user_token,&programs)!=S_OK) return FALSE;
+	BOOL ok=wcslen(programs)<MAX_PATH && vx_path(path,programs,L"VX Bridge Diagnostics.lnk");
+	if(ok) wcscpy(ancestor,programs);
+	CoTaskMemFree(programs);
+	if(!ok) return FALSE;
+	while(GetFileAttributesW(ancestor)==INVALID_FILE_ATTRIBUTES) {
+		DWORD error=GetLastError();
+		if(required || (error!=ERROR_FILE_NOT_FOUND && error!=ERROR_PATH_NOT_FOUND)) return FALSE;
+		WCHAR *slash=wcsrchr(ancestor,L'\\');
+		if(!slash || slash<=ancestor+2) return FALSE;
+		*slash=0;
+	}
+	unsigned int first=c->count;
+	ok=setup_pin_directory(c,ancestor);
+	if(ok) {
+		HANDLE file=vx_file(path,FALSE,GENERIC_READ,FILE_SHARE_READ,OPEN_EXISTING);
+		if(file==INVALID_HANDLE_VALUE) {
+			DWORD error=GetLastError();
+			ok=!required && (error==ERROR_FILE_NOT_FOUND || error==ERROR_PATH_NOT_FOUND);
+		} else {
+			ok=setup_shortcut_owned(c,L"VX Bridge Diagnostics.lnk",path);
+			if(!CloseHandle(file)) ok=FALSE;
+		}
+	}
+	while(c->count>first) if(!CloseHandle(c->pins[--c->count])) ok=FALSE;
+	return ok;
+}
+
 BOOL setup_diagnostics_enabled(void)
 {
 	DWORD error=GetLastError(); WCHAR value[2]={0};

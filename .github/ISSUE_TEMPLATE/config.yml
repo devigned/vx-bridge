@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Reporting and privacy guide
+    url: https://github.com/devigned/vx-bridge/blob/main/docs/REPORTING.md
+    about: What to include, how to save a report, and what to keep private.

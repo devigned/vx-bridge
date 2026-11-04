@@ -85,8 +85,13 @@ replayed.
 
 Use the [installation guide](docs/INSTALL.md), [everyday guide](docs/USAGE.md) or
 [FAQ](docs/FAQ.md) for more detail. The [technical manual](docs/technical/README.md)
-covers implementation and testing. Read [Contributing](contributors.md) before
-reporting a bug or submitting a change.
+covers implementation and testing. Use the [reporting guide](docs/REPORTING.md) to
+[report a bug](https://github.com/devigned/vx-bridge/issues/new?template=bug.yml)
+or [request a feature](https://github.com/devigned/vx-bridge/issues/new?template=feature.yml).
+An optional local diagnostic ZIP can be saved from the bridge menu or
+**VX Bridge Diagnostics** in Start, even when the host will not start.
+Nothing is uploaded automatically. Read [Contributing](contributors.md)
+before submitting a code change.
 
 Original work uses the [MIT license](LICENSE).
 [Third-party notices](THIRD_PARTY_NOTICES.txt) cover dependencies and reference

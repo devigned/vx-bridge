@@ -10,6 +10,13 @@ For a confusing setup step, suggest the wording you wish you'd seen. For a bug,
 describe what you did, what you expected, what happened, and the bridge/Labs/game
 versions involved. Include the visible tray error and selected game when relevant.
 
+Use the [bug form](https://github.com/devigned/vx-bridge/issues/new?template=bug.yml)
+and [reporting guide](docs/REPORTING.md). A reviewed diagnostic ZIP is optional;
+do not block a report on a working exporter. For a capability request, use the
+[feature form](https://github.com/devigned/vx-bridge/issues/new?template=feature.yml)
+and describe the task, workaround and desired outcome. Maintainers should follow
+the [triage procedure](docs/technical/DIAGNOSTICS.md#maintainer-triage).
+
 Check the [FAQ](docs/FAQ.md) and
 [existing issues](https://github.com/devigned/vx-bridge/issues)
 before opening a report. Include the release version and the visible error.
@@ -45,6 +52,8 @@ Start with the runtime, not installer qualification or historical probes:
    [`internal/managed`](internal/managed/) checks installed-copy admission,
    [`internal/startup`](internal/startup/) owns sign-in registration, and
    [`internal/diagnostics`](internal/diagnostics/) owns bounded sanitized logs.
+   Its shared read-only exporter packages allowlisted diagnostic records for
+   the tray and host-independent control-client entry points.
    These responsibilities do not authorize forced source teardown or automatic repair.
 
 | Area | Where to look |

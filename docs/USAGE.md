@@ -95,6 +95,18 @@ Selecting GSPro here means **OpenAPI**, not the native VX connector. To return
 to the vendor's native integration instead, disconnect normally in Labs and
 Quit VX Bridge before opening that receiver.
 
+## Report a problem
+
+Choose **Save diagnostic report...** to save one local ZIP, then **Report a bug**
+to open the bug form. Review the ZIP before attaching it; nothing is sent by
+the bridge. A partial report is useful and an attachment is optional.
+
+If the icon is missing or the bridge will not start, open **VX Bridge Diagnostics**
+from Start. It uses the same exporter without starting or repairing the host.
+If these entries are absent in an older build or saving fails, submit the
+[web form](https://github.com/devigned/vx-bridge/issues/new?template=bug.yml)
+without a ZIP. See [Reporting](REPORTING.md) for the steps and privacy rules.
+
 ## Open local logs
 
 Choose **Open Logs** in the tray menu. The folder is:

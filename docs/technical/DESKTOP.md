@@ -48,8 +48,15 @@ unqualified live behavior. No menu action discovers the running game.
 
 **Open Logs** invokes native ShellExecute only on the fixed application log
 directory. It accepts no arbitrary path or command. Failure is visible through
-the menu and `DesktopAction`; there is no placeholder Settings or Export
-action.
+the menu and `DesktopAction`.
+
+**Save diagnostic report...** runs the shared exporter behind a native save
+dialog on a separate serialized support worker. **Report a bug** opens the
+empty GitHub form, with no report data in its URL. Cancel saves nothing;
+completion distinguishes saved, partial and failed results. Native Windows
+controls provide keyboard/screen-reader labels; nothing is uploaded. Support
+work cannot block the engine, native owner, ordinary desktop action worker or
+status/Quit poller. See [Diagnostic reports](DIAGNOSTICS.md).
 
 ## Remembered destination
 
@@ -98,10 +105,16 @@ by the [managed installer](INSTALLER.md#managed-copy-admission).
 
 ## Control and failure reporting
 
-The separate `vxbridge.exe` supplies `--version`, `--status`, and `--quit`;
+The separate `vxbridge.exe` supplies `--version`, `--status`, `--quit`,
+`--diagnostics` and `--diagnostics-dialog`;
 see [Command reference](COMMANDS.md#vxbridge1). Status and Quit use bounded
 same-user control, independently of managed host admission. They neither
 start a host nor bypass source-first shutdown.
+
+The **VX Bridge Diagnostics** Start shortcut uses `--diagnostics-dialog`,
+independently of normal host admission. A missing/refused/unstarted host yields
+an honestly partial report; it never triggers repair. The shortcut is a
+nonadvertised owned installer resource, not another runtime or service.
 
 `Desktop`, `LocalLogs`, `LocalLogLost`, `Startup`, and `DesktopAction`
 decorate engine snapshots with health and registration state, not executable

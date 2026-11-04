@@ -1,0 +1,48 @@
+name: Bug report
+description: Tell us what went wrong with VX Bridge.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve VX Bridge. Check the [FAQ](https://github.com/devigned/vx-bridge/blob/main/docs/FAQ.md) and [existing issues](https://github.com/devigned/vx-bridge/issues) first.
+
+        A diagnostic ZIP is helpful, but **optional**. Use **Save diagnostic report...** in the bridge menu, or **VX Bridge Diagnostics** in Start if the bridge will not open. Nothing is sent automatically. Review the ZIP before attaching it below.
+
+        Do not attach raw vendor/MSI logs, captures, shot/player/device/license/account details, credentials, or unredacted screenshots. You can submit this form even if export fails. See the [reporting guide](https://github.com/devigned/vx-bridge/blob/main/docs/REPORTING.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      description: Describe the problem, visible error, and how it affects you.
+      placeholder: "For example: the selected game stays unavailable after..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps, expected result, and observed result
+      description: What did you do? What should have happened? What happened instead? If it happens only sometimes, say so.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and selected game
+      description: Bridge release, Windows version/build, ProTee Labs version, game/OpenAPI version, and selected game (Infinite Tees, GSPro OpenAPI, or Standby). Write "unknown" for anything you cannot find. Do not include account or device details.
+      placeholder: |
+        Bridge:
+        Windows:
+        Labs:
+        Game / OpenAPI:
+        Selected game:
+  - type: textarea
+    id: context
+    attributes:
+      label: When and how often?
+      description: Approximate time and time zone; fresh install, upgrade, startup, normal play, switching, or Quit; frequency; last known working bridge version; and whether it prevents use, loses shots, or is a minor inconvenience.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional diagnostic ZIP or redacted screenshots
+      description: Drag a reviewed ZIP or redacted screenshot here. If export failed, describe the save error instead. Do not attach raw vendor logs or captures.

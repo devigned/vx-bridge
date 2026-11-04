@@ -101,7 +101,8 @@ func TestAuthoredScopeAndNoEagerLaunch(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, required := range []string{`InstallScope="perUser"`, `InstallPrivileges="limited"`, `AllowAdvertise="no"`,
-		`Name="VX Bridge"`, `Name="VX Bridge Setup"`,
+		`Name="VX Bridge"`, `Name="VX Bridge Setup"`, `Name="VX Bridge Diagnostics"`,
+		`Target="[INSTALLDIR]vxbridge.exe" Arguments="--diagnostics-dialog"`,
 		`Target="[INSTALLDIR]GSPconnect.exe"`,
 		`MSIRESTARTMANAGERCONTROL" Value="Disable"`, `REBOOT" Value="ReallySuppress"`,
 		`VxSetupAuthorize" Before="InstallValidate"`, `Execute="rollback"`, `Execute="deferred"`,

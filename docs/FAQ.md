@@ -175,6 +175,23 @@ Logging failure doesn't deliberately close Labs. Use the available menu or local
 control status to report the build version and sanitized error. Don't substitute
 full vendor logs or a raw capture: those can contain private data.
 
+## How do I report a bug if the bridge will not start?
+
+Open **VX Bridge Diagnostics** from Start to save a local ZIP. It does not
+start or repair the host. Missing status or logs are marked unavailable, not
+healthy. Review the ZIP, then attach it to the
+[bug form](https://github.com/devigned/vx-bridge/issues/new?template=bug.yml)
+if you choose. Nothing is sent automatically.
+
+If export fails or an older build lacks that shortcut, submit without an
+attachment. Include the visible error, selected game, versions you know,
+approximate time/time zone, and what you expected and observed. Do not attach
+raw vendor/MSI logs or private data. See [Reporting](REPORTING.md).
+
+For a new capability rather than a failure, use the
+[feature form](https://github.com/devigned/vx-bridge/issues/new?template=feature.yml).
+Describe your task, workaround and desired outcome; an implementation is optional.
+
 <a id="start-with-windows-is-checked-but-the-bridge-doesnt-start"></a>
 
 ## Auto-launch on Windows Startup is checked, but the bridge doesn't start

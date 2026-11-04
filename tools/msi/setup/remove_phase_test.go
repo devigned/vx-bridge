@@ -35,7 +35,7 @@ func TestShortcutOwnershipReadRetainsExactDeleteHandoffChecks(t *testing.T) {
 	for _, required := range []string{
 		"BOOL recheck_shortcut=exclusive && directory==REMOVE_SHORTCUTS;",
 		"access=recheck_shortcut?GENERIC_READ:exclusive?GENERIC_READ|DELETE",
-		"ok=shortcut_owned(c,name,path);",
+		"ok=setup_shortcut_owned(c,name,path);",
 		"GetFileInformationByHandle(file,&before) && vx_hash(file,actual)",
 		"before.dwVolumeSerialNumber==after.dwVolumeSerialNumber",
 		"before.nFileIndexHigh==after.nFileIndexHigh && before.nFileIndexLow==after.nFileIndexLow",
@@ -44,5 +44,33 @@ func TestShortcutOwnershipReadRetainsExactDeleteHandoffChecks(t *testing.T) {
 		if !strings.Contains(source, required) {
 			t.Fatal("shortcut delete admission lost its read/ID/byte proof", required)
 		}
+	}
+}
+
+func TestDiagnosticShortcutHasCompleteOwnershipAndRemovalCoverage(t *testing.T) {
+	common := setupSource(t, "../../../installer/setup/common.c")
+	remove := setupSource(t, "../../../installer/setup/remove.c")
+	launcher := setupSource(t, "../../../installer/setup/launcher.c")
+	actions := setupSource(t, "../../../installer/setup/actions.c")
+	inspect := setupSource(t, "../../../installer/build-setup.ps1")
+	for _, required := range []string{
+		`BOOL diagnostics=!wcscmp(name,L"VX Bridge Diagnostics.lnk");`,
+		`diagnostics?L"vxbridge.exe":L"GSPconnect.exe"`,
+		`diagnostics?L"--diagnostics-dialog":L""`,
+		`setup_shortcut_owned(c,L"VX Bridge Diagnostics.lnk",path)`,
+		`vx_file(path,FALSE,GENERIC_READ,FILE_SHARE_READ,OPEN_EXISTING)`,
+	} {
+		if !strings.Contains(common, required) {
+			t.Fatal("support shortcut has no exact owner proof", required)
+		}
+	}
+	if strings.Count(remove, `L"VX Bridge Diagnostics.lnk"`) != 4 ||
+		!strings.Contains(launcher, "!setup_support_shortcut(&context,FALSE)") ||
+		!strings.Contains(launcher, "!setup_support_shortcut(&context,TRUE)") ||
+		!strings.Contains(actions, "!setup_support_shortcut(&c,FALSE)") ||
+		!strings.Contains(inspect, "'DiagnosticsShortcut'") ||
+		!strings.Contains(inspect, "$shortcuts.Count -ne 3") ||
+		!strings.Contains(inspect, "'--diagnostics-dialog'") {
+		t.Fatal("support shortcut install/repair/upgrade/removal/inspection incomplete")
 	}
 }

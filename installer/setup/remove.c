@@ -90,7 +90,8 @@ static BOOL known_file(DWORD directory,const WCHAR *name)
 		return wcslen(name)==14 && !wcsncmp(name,L"bridge.",7) && name[7]>=L'0' &&
 			name[7]<=L'4' && !wcscmp(name+8,L".jsonl");
 	} else if(directory==REMOVE_CONFIG) return !wcscmp(name,L"destination.json") || destination_temp(name);
-	else if(directory==REMOVE_SHORTCUTS) return !wcscmp(name,L"VX Bridge.lnk") || !wcscmp(name,L"VX Bridge Setup.lnk");
+	else if(directory==REMOVE_SHORTCUTS) return !wcscmp(name,L"VX Bridge.lnk") || !wcscmp(name,L"VX Bridge Setup.lnk") ||
+		!wcscmp(name,L"VX Bridge Diagnostics.lnk");
 	return FALSE;
 }
 static BOOL add_file(REMOVE_PLAN *p,DWORD directory,const WCHAR *name)
@@ -119,7 +120,8 @@ static BOOL fixed_files(REMOVE_PLAN *p)
 		if(swprintf(name,32,L"bridge.%u.jsonl",i)<=0 || !add_file(p,REMOVE_LOGS,name)) return FALSE;
 	}
 	return add_file(p,REMOVE_CONFIG,L"destination.json") &&
-		add_file(p,REMOVE_SHORTCUTS,L"VX Bridge.lnk") && add_file(p,REMOVE_SHORTCUTS,L"VX Bridge Setup.lnk");
+		add_file(p,REMOVE_SHORTCUTS,L"VX Bridge.lnk") && add_file(p,REMOVE_SHORTCUTS,L"VX Bridge Setup.lnk") &&
+		add_file(p,REMOVE_SHORTCUTS,L"VX Bridge Diagnostics.lnk");
 }
 /* Only callback-local handles. Missing descendants never authorize traversal
  * through an unvalidated existing ancestor or creation of a cleanup directory.
@@ -151,24 +153,6 @@ static BOOL open_state(VX_CONTEXT *c)
 	if(RegCloseKey(user)!=ERROR_SUCCESS) return FALSE;
 	return e==ERROR_SUCCESS || e==ERROR_FILE_NOT_FOUND;
 }
-static BOOL shortcut_owned(VX_CONTEXT *c,const WCHAR *name,const WCHAR *path)
-{
-	IShellLinkW *link=NULL; IPersistFile *persist=NULL;
-	HRESULT initialized=CoInitializeEx(NULL,COINIT_APARTMENTTHREADED);
-	BOOL own=SUCCEEDED(initialized),ok=own || initialized==RPC_E_CHANGED_MODE;
-	WCHAR expected[MAX_PATH],actual[MAX_PATH],arguments[MAX_PATH];
-	BOOL setup=!wcscmp(name,L"VX Bridge Setup.lnk");
-	ok=ok && vx_path(expected,setup?c->state:c->root,setup?L"setup.exe":L"GSPconnect.exe") &&
-		CoCreateInstance(&CLSID_ShellLink,NULL,CLSCTX_INPROC_SERVER,&IID_IShellLinkW,(void **)&link)==S_OK &&
-		IShellLinkW_QueryInterface(link,&IID_IPersistFile,(void **)&persist)==S_OK &&
-		IPersistFile_Load(persist,path,STGM_READ|STGM_SHARE_DENY_NONE)==S_OK &&
-		IShellLinkW_GetPath(link,actual,MAX_PATH,NULL,SLGP_RAWPATH)==S_OK && !_wcsicmp(actual,expected) &&
-		IShellLinkW_GetArguments(link,arguments,MAX_PATH)==S_OK && !wcscmp(arguments,setup?L"/maintain":L"");
-	if(persist) IPersistFile_Release(persist);
-	if(link) IShellLinkW_Release(link);
-	if(own) CoUninitialize();
-	return ok;
-}
 static BOOL file_owned(VX_CONTEXT *c,const REMOVE_PLAN *p,DWORD directory,const WCHAR *name,
 	const WCHAR *path,BOOL exclusive)
 {
@@ -192,7 +176,7 @@ static BOOL file_owned(VX_CONTEXT *c,const REMOVE_PLAN *p,DWORD directory,const 
 			vx_binary(c,key,want,sizeof(want),&exists) && exists && vx_hex(want,64);
 		ok=ok && vx_hash(file,actual) && !strcmp(actual,want);
 	} else if(directory==REMOVE_SHORTCUTS) {
-		ok=shortcut_owned(c,name,path);
+		ok=setup_shortcut_owned(c,name,path);
 		if(recheck_shortcut) {
 			BY_HANDLE_FILE_INFORMATION before,after;
 			ok=ok && GetFileInformationByHandle(file,&before) && vx_hash(file,actual);
@@ -222,7 +206,7 @@ static BOOL inventory(MSIHANDLE h,VX_CONTEXT *c,REMOVE_PLAN *p,BOOL collect,BOOL
 		unsigned int first=c->count; BOOL exists=FALSE,ok=pin_existing(c,paths[d],&exists);
 		HANDLE find=INVALID_HANDLE_VALUE; WIN32_FIND_DATAW entry;
 		if(ok && exists && d==REMOVE_SHORTCUTS) {
-			const WCHAR *names[]={L"VX Bridge.lnk",L"VX Bridge Setup.lnk"};
+			const WCHAR *names[]={L"VX Bridge.lnk",L"VX Bridge Setup.lnk",L"VX Bridge Diagnostics.lnk"};
 			for(unsigned int i=0;ok && i<ARRAYSIZE(names);++i)
 				ok=(collect?add_file(p,d,names[i]):contains(p,d,names[i])) &&
 					vx_path(path,paths[d],names[i]) && file_owned(c,p,d,names[i],path,exclusive);
@@ -668,7 +652,7 @@ static BOOL absent(VX_CONTEXT *c)
 		unsigned int first=c->count; BOOL exists=FALSE;
 		BOOL ok=pin_existing(c,paths[i],&exists);
 		if(ok && i==REMOVE_SHORTCUTS && exists) {
-			const WCHAR *names[]={L"VX Bridge.lnk",L"VX Bridge Setup.lnk"}; WCHAR path[MAX_PATH];
+			const WCHAR *names[]={L"VX Bridge.lnk",L"VX Bridge Setup.lnk",L"VX Bridge Diagnostics.lnk"}; WCHAR path[MAX_PATH];
 			for(unsigned int j=0;ok && j<ARRAYSIZE(names);++j)
 				ok=vx_path(path,paths[i],names[j]) && GetFileAttributesW(path)==INVALID_FILE_ATTRIBUTES && missing(GetLastError());
 		} else if(i!=REMOVE_SHORTCUTS) ok=ok && !exists;

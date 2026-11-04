@@ -153,6 +153,10 @@ instructions.
 
 ## Uninstall
 
+Before removing logs needed for a bug report, save an optional report with
+**VX Bridge Diagnostics** in Start. This does not start the host or call MSI.
+See [Reporting](REPORTING.md); independently saved reports are not uninstalled.
+
 Disconnect in Labs and Quit normally, then use **Windows Settings > Apps >
 Installed apps > VX Bridge > Uninstall** (called **Apps & features** on some
 Windows versions). Normal uninstall does not need a working bridge or working

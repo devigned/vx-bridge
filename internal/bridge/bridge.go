@@ -124,6 +124,10 @@ type Snapshot struct {
 	// Identity records native identity health. Diagnostics records sink/control
 	// degradation without forcing an attached source closed.
 	Version, Source, Target, Ready, Quit, Identity, Diagnostics string
+	// Release, Revision, GoVersion and Architecture are structured host build
+	// fields, independent of the legacy composite Version. TargetEndpoint is
+	// the selected loopback endpoint (or "none"), not a discovered peer.
+	Release, Revision, GoVersion, Architecture, TargetEndpoint string
 	// Desktop is tray health; LocalLogs is file-worker health. Startup is the
 	// current-user startup registration state, not proof of policy execution.
 	// DesktopAction is the most recent local action's progress/failure code.

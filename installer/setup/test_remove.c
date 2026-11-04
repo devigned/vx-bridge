@@ -18,7 +18,8 @@ int wmain(void)
 		{REMOVE_CONFIG,L".destination-4294967296.tmp",FALSE},
 		{REMOVE_CONFIG,L".destination-.tmp",FALSE}, {REMOVE_CONFIG,L".destination-01.tmp",FALSE},
 		{REMOVE_CONFIG,L".destination-12345678901.tmp",FALSE}, {REMOVE_CONFIG,L".destination-foreign.tmp",FALSE},
-		{REMOVE_SHORTCUTS,L"VX Bridge.lnk",TRUE}, {REMOVE_SHORTCUTS,L"Other.lnk",FALSE}
+		{REMOVE_SHORTCUTS,L"VX Bridge.lnk",TRUE}, {REMOVE_SHORTCUTS,L"VX Bridge Setup.lnk",TRUE},
+		{REMOVE_SHORTCUTS,L"VX Bridge Diagnostics.lnk",TRUE}, {REMOVE_SHORTCUTS,L"Other.lnk",FALSE}
 	};
 	for(unsigned int i=0;i<ARRAYSIZE(cases);++i)
 		if(known_file(cases[i].directory,cases[i].name)!=cases[i].want) return (int)i+1;

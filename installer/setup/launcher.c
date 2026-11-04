@@ -285,15 +285,15 @@ static BOOL root_fresh(void)
 	if(!FindClose(find)) empty=FALSE;
 	return empty;
 }
-static BOOL result_log(UINT install,BOOL usable,int result)
+static BOOL result_log(UINT install,BOOL usable,int result,DWORD operation)
 {
 	WCHAR path[MAX_PATH];
 	if(!vx_path(path,context.state,L"setup-result.log")) return FALSE;
 	HANDLE file=vx_file(path,FALSE,FILE_APPEND_DATA,FILE_SHARE_READ,OPEN_ALWAYS);
 	if(file==INVALID_HANDLE_VALUE) return FALSE;
 	LARGE_INTEGER size; char line[2048]; DWORD wrote=0;
-	int n=snprintf(line,sizeof(line),"contract=recovery-first-v2 install_called=%u install=%u engine_namespace=conventional usable=%u result=%d source=%s ui_info=%ld ui_three=%ld ui_format=%ld ui_target=%ld ui_admitted=%ld auth_read=%ld auth_impersonated=%ld auth_context=%ld auth_sid=%ld auth_match=%ld auth_accepted=%ld auth_error=%lu ui_record_fields=%lu ui_field0_code=%lu ui_field0_length=%lu ui_field1_code=%lu ui_field2_code=%lu ui_field3_code=%lu ui_field0_hex=%s auth_token_error=%lu auth_token_level=%lu auth_confirmed=%ld\r\n",
-		install!=(UINT)-1,install,usable?1U:0U,result,target.revision,
+	int n=snprintf(line,sizeof(line),"contract=recovery-first-v2 operation=%lu install_called=%u install=%u engine_namespace=conventional usable=%u result=%d source=%s ui_info=%ld ui_three=%ld ui_format=%ld ui_target=%ld ui_admitted=%ld auth_read=%ld auth_impersonated=%ld auth_context=%ld auth_sid=%ld auth_match=%ld auth_accepted=%ld auth_error=%lu ui_record_fields=%lu ui_field0_code=%lu ui_field0_length=%lu ui_field1_code=%lu ui_field2_code=%lu ui_field3_code=%lu ui_field0_hex=%s auth_token_error=%lu auth_token_level=%lu auth_confirmed=%ld\r\n",
+		(unsigned long)operation,install!=(UINT)-1,install,usable?1U:0U,result,target.revision,
 		(long)ui_info,(long)ui_three,(long)ui_format,(long)ui_target,(long)ui_admitted,
 		(long)auth_read,(long)auth_impersonated,(long)auth_context,(long)auth_sid,(long)auth_match,(long)auth_accepted,(unsigned long)auth_error,
 		(unsigned long)ui_record_fields,(unsigned long)ui_field0_code,(unsigned long)ui_field0_length,
@@ -346,6 +346,7 @@ static int execute(const WCHAR *input,BOOL quiet)
 	if(source_pin==INVALID_HANDLE_VALUE || !source(&db,&target,path)) goto done;
 	if(!setup_pin_root(&context,&root_created,&root_slot)) goto done;
 	if(!setup_root_snapshot(&context,root_slot,&root_before)) goto done;
+	if(!setup_support_shortcut(&context,FALSE)) goto done;
 	setup_diag_handle("owned_root","initial-pin",context.pins[root_slot],FILE_READ_ATTRIBUTES,FILE_SHARE_READ,OPEN_EXISTING);
 	stage="pending_and_original_receipt"; VX_PENDING stale;
 	if(!vx_binary(&context,L"Pending",&stale,sizeof(stale),&pending_exists) ||
@@ -476,7 +477,8 @@ static int execute(const WCHAR *input,BOOL quiet)
 	if(install!=ERROR_SUCCESS) goto done;
 	stage="terminal_product_and_payload";
 	if(!setup_repin_root(&context,&root_slot,NULL) ||
-		!registered(&target,FALSE) || !setup_single_product(&target) || !setup_payload(&context,&target,FALSE)) goto done;
+		!registered(&target,FALSE) || !setup_single_product(&target) || !setup_payload(&context,&target,FALSE) ||
+		!setup_support_shortcut(&context,TRUE)) goto done;
 	if(!vx_enter(&context)) goto done;
 	held=TRUE;
 	stage="receipt_publication"; engine_span=setup_diag_start("receipt_publication");
@@ -515,7 +517,7 @@ done:
 		if(!CloseHandle(owner_lock)) result=1;
 	}
 	if(!vx_close(&context)) result=1;
-	if(context.state[0] && !result_log(install,ready && result==0,result)) {
+	if(context.state[0] && !result_log(install,ready && result==0,result,p.operation)) {
 		result=1;
 		if(!quiet) failure(L"Setup result could not be recorded. Maintenance completion is unverified; run Setup and choose Repair / Reinstall. No bridge was launched.");
 	}

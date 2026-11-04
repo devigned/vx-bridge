@@ -106,6 +106,14 @@ the guarded disposable-account harness.
 
 ## Timing fixtures and negative evidence
 
+Diagnostic fixtures use only invented records and temporary owned files. Run
+`go test ./internal/diagnostics ./internal/managed ./internal/desktop ./cmd/vxbridge`
+for ZIP shape/size/privacy, running/no-host and corrupt/missing sources,
+rotation, bounded collection, cancellation and output refusal. A blocked save
+must leave status and guarded Quit responsive. Static installer tests require
+the exact support shortcut in authoring, inspection, ownership and removal.
+Do not export a report from a real simulator as a routine source check.
+
 A deadline test must reach its intended phase before triggering the cause.
 Report setup or window creation can consume a short deadline before an
 interrupt case starts; expiry must then remain expiry, not be relabeled as
