@@ -1,27 +1,21 @@
 # Using VX Bridge
 
-**One ProTee VX connection. Your choice of golf simulator.**
-
 VX Bridge sends shots from ProTee Labs to your chosen game on the same Windows
-PC. Choose Infinite Tees, GSPro OpenAPI or Standby from the icon near the clock.
-Your choice is remembered; only one game receives shots. These guides are for
-using the bridge, not building it.
+PC. Select Infinite Tees, GSPro OpenAPI or Standby from the icon near the clock.
+The bridge remembers the choice; only one game receives shots.
 
-| What you want to do | Start here |
+| Task | Guide |
 |---|---|
 | Choose the right files, install and connect for the first time | [Installation](INSTALL.md) |
 | Choose a game, check status, find logs or quit safely | [Everyday use](USAGE.md) |
 | Fix a connection problem, missed shot or failed installation | [FAQ](FAQ.md) |
+| Read initial-release features, files and contributor credits | [v0.1.0 release notes](releases/v0.1.0.md) |
 | Report a bug or contribute | [Contributing](../contributors.md) |
 
-**[v0.1.0 is available](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0),
-but is not yet qualified for live play.** Choose the installer ZIP and follow the
-[installation guide](INSTALL.md). Its automated build and file checks do not
-qualify interactive setup, Windows sign-in or live Labs/game behavior, including
-GSPro and game switching. Earlier private installer and equipment observations
-used different builds. Neither a connected status nor automatic startup means
-the game is ready.
+[v0.1.0 is available](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0).
+It passed automated build and file checks, not interactive installation,
+Windows sign-in or live Labs/game qualification. See
+[qualification](technical/QUALIFICATION.md) for the tested scope.
 
-Looking after the code? The [technical index](technical/README.md) covers the
-implementation, builds, tests and clearly labeled historical evidence.
-The [project README](../README.md) is the short introduction.
+The [technical manual](technical/README.md) covers implementation, builds and
+testing. The [project README](../README.md) gives a shorter installation procedure.

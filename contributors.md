@@ -1,8 +1,8 @@
 # Contributing
 
-Help make VX Bridge easier to use and maintain. Documentation, useful bug
-reports, regression tests and small fixes are all welcome. You don't need a
-launch monitor to improve the guides or run the automated tests.
+Contributions may improve documentation, report bugs, add regression tests or
+fix code. A launch monitor is not needed to edit the guides or run automated
+tests.
 
 ## Pick a useful first contribution
 
@@ -12,9 +12,10 @@ versions involved. Include the visible tray error and selected game when relevan
 
 Check the [FAQ](docs/FAQ.md) and
 [existing issues](https://github.com/devigned/vx-bridge/issues)
-before opening a report. The public [v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
-has not been qualified for live play. Please don't attach raw captures, real shot
-data, device identifiers, account details or full vendor logs.
+before opening a report. Include the release version and the visible error.
+[v0.1.0](docs/releases/v0.1.0.md) is published but has not been qualified for live
+play. Do not attach raw captures, real shot data, device identifiers, account
+details or full vendor logs.
 
 For code changes, choose a small issue or discuss the intended behavior first.
 Changes to delivery, game readiness, shutdown or installation need particular

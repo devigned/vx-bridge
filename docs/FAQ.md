@@ -4,18 +4,21 @@
 
 ## Where is the installer?
 
-**[Download the public v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip)**,
-not the application ZIP or MSI alone. Use **Extract All**, keep all nine files
-together, including matching **`setup.exe` and `bridge.msi`**, and open Setup from
-the extracted folder, not inside the ZIP.
+[Download the public v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).
+Select **Extract All**, keep all nine files together, and open `setup.exe` from
+the extracted folder with matching `bridge.msi` beside it. Do not install the
+bare MSI.
 
-The [v0.1.0 release page](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
-is public. These binaries passed automated build and static file checks, not
-live-equipment or installer-lifecycle qualification. They are not publisher-signed
-(Authenticode); a signed Git tag does not sign Windows programs. If Windows
-blocks Setup, stop and report the warning rather than bypassing it.
-An application-only ZIP, source archive or **BUILD ONLY** artifact is not the installer.
-See [exact filename patterns and which files to use](INSTALL.md#choose-the-right-files).
+The application ZIP, source archives and **BUILD ONLY** artifacts are not the
+installer. See [file types](INSTALL.md#choose-the-right-files) and
+[tested scope](#which-versions-and-features-have-been-checked).
+
+## Windows blocks Setup
+
+Stop and [report the warning](https://github.com/devigned/vx-bridge/issues).
+Do not disable security protections or bypass it. The Windows programs and
+installer are not publisher-signed (Authenticode). Signed Git commits and tags
+do not sign those files.
 
 ## ProTee Labs won't connect
 
@@ -65,10 +68,10 @@ recovery before swinging. **Standby** deliberately sends to neither game.
 
 ## Can I change games without disconnecting Labs?
 
-That is the intended workflow: stop swinging, finish the visible result,
-choose the other game and wait for switching to finish. VX Bridge keeps Labs
-connected while the current shot response and pending replies finish or time
-out. New shots during switching are discarded, not saved for later.
+Stop swinging, finish the visible result, select the other game and wait for
+switching to finish. VX Bridge keeps Labs connected while the current shot
+response and pending replies finish or time out. New shots during switching
+are discarded, not saved for later.
 
 If switching is blocked by a Labs connection fault, use normal Labs Disconnect; repeated
 choices cannot force it. Live Infinite Tees/GSPro switching still needs testing.
@@ -203,6 +206,10 @@ remain on the same PC; network/LAN targets aren't supported.
 
 ## Which versions and features have been checked?
 
+v0.1.0 passed automated build and static file checks. Those checks did not run
+the installer or product executables. See the [release notes](releases/v0.1.0.md)
+and [publication record](technical/QUALIFICATION.md#public-release-publication).
+
 An earlier private installer candidate passed hosted Windows checks for standard-user
 installation, damaged-file repair, one controlled version-to-version upgrade,
 full removal and explicit uninstall/reinstall recovery after an induced failure.
@@ -232,9 +239,8 @@ core and source; it is not a promise to upgrade arbitrary older builds.
 
 Start with normal Labs Disconnect and Quit the old copy. Preserve its files and
 startup registration until you have separately approved migration instructions.
-There is no verified portable-migration procedure; the published v0.1.0 installer
-does not change that. Don't treat publication as permission to adopt or delete
-an old copy.
+There is no verified portable-migration procedure. Publication of v0.1.0 does
+not authorize adopting or deleting an old copy.
 
 ## Does uninstall erase my game choice or all installer files?
 

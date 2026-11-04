@@ -10,39 +10,37 @@ to its exact source, artifact, version, scenario, and observation method.
 Passing CI does not turn an unsigned development package into a release or
 qualify later binaries on a golf PC.
 
-The current source implements remembered IT/GSPro OpenAPI/Standby selection
-and recovery-first-v2 installation. The public v0.1.0 tag and release are now
-published; their bounded verification is recorded below. There is no official
-vendor endorsement or live GSPro/cross-game qualification.
-[Testing](TESTING.md) describes software coverage;
-the [research boundary](research/README.md) explains what is retained publicly.
-This repository starts from a source-only bootstrap without the earlier private
-history, run artifacts or investigation ledgers. The historical installer and
-bridge observations below concern older, separately identified instruments and
-candidates, not this bootstrap commit or binaries rebuilt from it.
-Original private records remain unchanged;
-no old hash, run or issue is relabeled as belonging to this repository.
+The current source implements remembered Infinite Tees/GSPro OpenAPI/Standby
+selection and recovery-first-v2 installation. The public v0.1.0 release has
+build and publication evidence, not live GSPro or cross-game qualification.
+There is no vendor endorsement. [Testing](TESTING.md) describes software
+coverage; the [research boundary](research/README.md) defines the public record.
+
+The repository began with a source-only bootstrap. Earlier private history,
+run artifacts and investigation ledgers were not imported. The historical
+installer and bridge observations below concern older instruments and
+candidates, not v0.1.0 or rebuilt binaries. The original records are unchanged;
+no earlier hash, run or issue is attributed to this repository.
 
 ## Public release publication
 
-[v0.1.0](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0) targets public
-source commit `5401cf26d19238b04ba3dbb8ecfa60442616ca79`. Its annotated tag was
-cryptographically signed with the owner's existing Git signing identity and
-verified locally and by GitHub. The
+[v0.1.0](../releases/v0.1.0.md) targets source commit
+`5401cf26d19238b04ba3dbb8ecfa60442616ca79`. The annotated tag uses the owner's
+existing signing identity. Its signature was verified locally and by GitHub. The
 [tag-triggered release run](https://github.com/devigned/vx-bridge/actions/runs/41832770003)
-completed its build, static package verification and publication jobs.
+completed build, static package checks and publication.
 
-The published application ZIP, installer ZIP, direct matching MSI and three
-SHA-256 files were downloaded and verified. All six files matched that run's
-exact immutable artifact bytes and GitHub asset digests. The application manifest
-identified the tagged source and v0.1.0; the installer ZIP had the expected nine
-flat entries, and its `bridge.msi` matched the direct MSI.
+The application ZIP, installer ZIP, matching MSI and three SHA-256 files were
+downloaded and checked. All six matched the run's immutable artifact bytes and
+GitHub asset digests. The application manifest identified the tagged source
+and version. The installer ZIP contained nine flat entries; its `bridge.msi`
+was identical to the separate MSI.
 
-No product executable or installer was run for these checks. This establishes
-publication and artifact integrity, not interactive installation, Windows sign-in,
-installer servicing or real Labs/game compatibility for v0.1.0. The emitted
-Windows programs and installer are not Authenticode-signed; signed source commits
-and tags do not sign those files.
+No product executable or installer was run. These checks establish publication
+and file integrity, not interactive installation, Windows sign-in, installer
+servicing or live Labs/game compatibility. The Windows programs and installer
+are not Authenticode-signed. Signed source commits and tags do not sign those
+files.
 
 ## Installer observations
 

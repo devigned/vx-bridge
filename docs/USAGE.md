@@ -2,22 +2,26 @@
 
 [User guides](README.md) / Everyday use
 
-Open VX Bridge, choose today's game, connect Labs and check the game before
-swinging. [v0.1.0 is published](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0),
-but is not yet a qualified ready-to-play release. Live Labs/game use, GSPro and
-game switching for these binaries still need testing.
+VX Bridge sends shots to one selected game. Open the game and bridge, select the
+game, then connect Labs. [v0.1.0](releases/v0.1.0.md) is published; its live
+Labs/game behavior remains unqualified. See [qualification](technical/QUALIFICATION.md)
+for the tested scope.
 
 ## Start a session
 
-Open **VX Bridge** from Start on the same signed-in Windows desktop as Labs and
-your game. For a separately approved portable build, use its supplied launch
-instructions instead. Open the game, enter a playable scene and connect in
-ProTee Labs if needed.
+1. Open the game on the same signed-in Windows desktop as Labs. Enter a playable
+   scene. For GSPro, also open **OpenAPI / APIv1 Connect**, not the native VX receiver.
+2. Open **VX Bridge** from Start. Find its icon near the Windows clock; check
+   hidden icons if necessary.
+3. Right-click the icon. Select **Use Infinite Tees** or **Use GSPro OpenAPI**.
+4. Use ProTee Labs' normal Connect action if needed.
+5. Check the bridge menu and game. **Connected (transport only)** reports an
+   open data connection, not a game ready for the next shot.
 
-Find the bridge icon near the Windows clock, including the hidden-icons menu.
-The desktop build has no permanent console window. Right-click the icon to open
-its menu. Keyboard users can press **Win+B**, use the arrows to find the icon,
-and open its menu with **Enter** or **Shift+F10**.
+The desktop build has no permanent console window. Keyboard users can press
+**Win+B**, use the arrows to find the icon, and open its menu with **Enter** or
+**Shift+F10**. For a separately approved portable build, use its supplied launch
+instructions rather than the Start shortcut.
 
 ## Choose a destination
 

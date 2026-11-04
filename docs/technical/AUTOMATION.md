@@ -121,10 +121,9 @@ vx-bridge-installer-windows-amd64-vX.Y.Z-<40sha>.zip
 vx-bridge-windows-amd64-vX.Y.Z-<40sha>.msi
 ```
 
-Each file has its own appended `.sha256`. The public
-[v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0) uses
-these naming rules. The release publishes the verified application
-ZIP, installer ZIP, direct matching MSI, and all three checksums.
+Each file has an appended `.sha256` companion. The public
+[v0.1.0 release](../releases/v0.1.0.md) follows these naming rules and contains
+the application ZIP, installer ZIP, matching MSI and three checksums.
 `package-installer` and `verify-installer` own bundle assembly/integrity;
 native compilation and WiX authoring remain separate stages.
 
@@ -203,10 +202,10 @@ Repository commits must instead be signed under [AGENTS.md](../../AGENTS.md);
 that does not sign the emitted EXEs/MSI. Checksums detect
 corruption and bind inspected bytes; they do not authenticate a publisher,
 prove hardware compatibility, or imply vendor endorsement.
-The tag-release write path has local negative-fixture coverage and a successful
-[v0.1.0 publication run](https://github.com/devigned/vx-bridge/actions/runs/41832770003).
-That run built and statically verified packages without executing the product;
-see the [exact publication scope](QUALIFICATION.md#public-release-publication).
+The tag-release write path has local negative-fixture coverage. The
+[v0.1.0 publication run](https://github.com/devigned/vx-bridge/actions/runs/41832770003)
+also completed successfully. It built and checked packages without executing
+the product; see [publication scope](QUALIFICATION.md#public-release-publication).
 
 The only active workflows are CI and version-tag release. The private-only
 manual Setup lifecycle remains parked. Independent comparison/rollback-control
