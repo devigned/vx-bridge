@@ -12,20 +12,20 @@ controls the launch monitor; the game calculates ball flight.
 
 For GSPro, use its public **OpenAPI / APIv1 Connect** application, not the native
 VX receiver. VX Bridge does not supply a game or replace an existing license.
-v0.1.0 is an early release; read [Limits](#limits) before installing.
 
 ## Install
 
-**[Download the v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).**
-Use this ZIP, not the application-only ZIP, separate MSI or **Source code**
-downloads. See the [release notes](docs/releases/v0.1.0.md) for the initial
-release's features, contributors and files.
+**[Open the latest release](https://github.com/devigned/vx-bridge/releases/latest)**
+for release notes and downloads. Under **Assets** (expand it if needed), download
+the file whose name starts with `vx-bridge-installer-windows-amd64-` and ends in
+`.zip`. Do not choose the application-only ZIP, separate MSI, `.sha256` checksum
+or **Source code** downloads.
 
 1. In ProTee Labs, select **Game Options > Disconnect**. Close any existing
    receiver through its own controls. Do not run two receivers or replace the
    vendor's `GSPconnect.exe`.
 2. Right-click the downloaded ZIP and select **Extract All**. Open the extracted
-   folder. Keep all nine files together, including `setup.exe` and `bridge.msi`.
+   folder. Keep all extracted files together, including `setup.exe` and `bridge.msi`.
    Do not run Setup from inside the ZIP or mix files from different builds.
 3. Open `setup.exe` as the Windows user who will use the bridge, not as
    administrator. Select **Install**. Do not double-click `bridge.msi`.
@@ -81,19 +81,6 @@ Only the selected game receives shots. Opening a game does not select it.
 **Standby (discard shots)** keeps Labs connected but sends to neither game.
 Shots missed during switching, an outage or Standby are lost, not saved or
 replayed.
-
-## Limits
-
-v0.1.0 passed automated build and file checks. Interactive installation, Windows
-sign-in, installer servicing and live Labs/game use, including GSPro and game
-switching, remain unqualified for these binaries. Earlier observations used
-different builds; see [qualification](docs/technical/QUALIFICATION.md).
-
-The Windows programs and installer are not publisher-signed (Authenticode).
-Signed Git commits and tags do not sign those files.
-
-Local logs omit shot measurements and device/player identifiers. Nothing is
-uploaded automatically.
 
 ## Documentation and contributions
 
