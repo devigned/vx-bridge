@@ -88,9 +88,18 @@ repositories, and stubbed GitHub calls. They must preserve argv quoting,
 environment selection, exact source identity, and failures without real
 publication. A local tag fixture does not prove the hosted release write path.
 
-Installer bundle tests check the nine-entry allowlist, companion Setup/MSI
-identity, final metadata, compiler/license records, per-entry hashes, and
-agreement with the direct named MSI. Those static postconditions remain
+Installer bundle tests check the fixed ten-entry overlay, unchanged inner
+Setup/MSI identity, final metadata, compiler/license records, per-entry and
+stub hashes, exact source/version, malformed sizes and trailing data. A
+portable C fixture exercises the native layout parser against emitted bytes
+when a native C compiler is available. Packaging/publication fixtures require
+exactly the version-named EXE and `.exe.sha256`, verify checksum contents and
+reject extra MSI/ZIP/notices assets, SHA-bearing names, wrong basenames and
+symlinks. Native cross-builds check actual PE imports and source identity.
+
+These checks do not execute the self-contained EXE or qualify its Windows
+extraction, child lifetime, cleanup, cancellation or servicing behavior.
+Those static postconditions remain
 separate from `test-installer-lifecycle`, which executes full normal servicing,
 actual-mutation failure, supported recovery, and final owned cleanup under
 the guarded disposable-account harness.

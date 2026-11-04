@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 )
 
 type tagFixture struct {
@@ -123,7 +122,8 @@ fi
 	makeStub := `#!/usr/bin/env bash
 set -euo pipefail
 [[ "$*" == verify-installer ]]
-unzip -p "$ARCHIVE" build-manifest.json |
+	[[ -z "${ARCHIVE:-}" && "$INSTALLER_ARCHIVE" == *.exe ]]
+	unzip -p "$INSTALLER_ARCHIVE" build-manifest.json |
   jq -e --arg revision "$REVISION" --arg version "$RELEASE_VERSION" '
     .schema == 2 and .source_revision == $revision and .release_version == $version and
     all(.binaries[]; .build_revision == $revision and .release_version == $version)' >/dev/null
@@ -345,32 +345,40 @@ func TestTagPublicationFailuresRemainVisible(t *testing.T) {
 		{"wrong_artifact_digest", "", ""},
 		{"wrong_artifact_run", "", ""},
 		{"missing_installer", "", ""},
-		{"mismatched_direct_msi", "", ""},
+		{"extra_msi", "", ""},
+		{"extra_app_zip", "", ""},
+		{"extra_installer_zip", "", ""},
+		{"extra_notice", "", ""},
+		{"sha_filename", "", ""},
+		{"checksum_wrong_name", "", ""},
+		{"checksum_no_newline", "", ""},
+		{"checksum_extra_newline", "", ""},
+		{"symlink_installer", "", ""},
 		{"different_package_version", "", ""},
 		{"manifest_version_mismatch", "", ""},
 		{"corrupt_checksum", "", ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			directory := t.TempDir()
-			files, err := os.ReadDir(build)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, file := range files {
-				data, err := os.ReadFile(filepath.Join(build, file.Name()))
+			var installer bytes.Buffer
+			writer := zip.NewWriter(&installer)
+			// A ZIP-shaped fake EXE lets the stub verifier read exact source/version
+			// metadata without coupling publication fixtures to PE/MSI authoring.
+			application := readTestArchive(t, filepath.Join(build, archiveName(f.source, "v1.0.2")))
+			if test.name == "manifest_version_mismatch" {
+				var m manifest
+				if err := json.Unmarshal(application["build-manifest.json"], &m); err != nil {
+					t.Fatal(err)
+				}
+				m.Version = "v1.0.1"
+				data, err := json.Marshal(m)
 				if err != nil {
 					t.Fatal(err)
 				}
-				if test.name == "corrupt_checksum" && strings.HasSuffix(file.Name(), ".sha256") {
-					data[0] = 'z'
-				}
-				if err := os.WriteFile(filepath.Join(directory, file.Name()), data, 0o644); err != nil {
-					t.Fatal(err)
-				}
+				application["build-manifest.json"] = data
 			}
-			var installer bytes.Buffer
-			writer := zip.NewWriter(&installer)
-			for name, data := range map[string][]byte{"setup.exe": []byte("synthetic Setup"), "bridge.msi": []byte("synthetic MSI")} {
+			for name, data := range map[string][]byte{"setup.exe": []byte("synthetic Setup"),
+				"bridge.msi": []byte("synthetic MSI"), "build-manifest.json": application["build-manifest.json"]} {
 				entry, err := writer.Create(name)
 				if err != nil {
 					t.Fatal(err)
@@ -382,20 +390,41 @@ func TestTagPublicationFailuresRemainVisible(t *testing.T) {
 			if err := writer.Close(); err != nil {
 				t.Fatal(err)
 			}
-			installerName := "vx-bridge-installer-windows-amd64-v1.0.2-" + f.source + ".zip"
-			msiName := "vx-bridge-windows-amd64-v1.0.2-" + f.source + ".msi"
-			msiBytes := []byte("synthetic MSI")
-			if test.name == "mismatched_direct_msi" {
-				msiBytes = []byte("different MSI with valid external checksum")
+			installerName := "vx-bridge-installer-windows-amd64-v1.0.2.exe"
+			if test.name == "sha_filename" {
+				installerName = "vx-bridge-installer-windows-amd64-v1.0.2-" + f.source + ".exe"
 			}
-			for name, data := range map[string][]byte{installerName: installer.Bytes(), msiName: msiBytes} {
-				if test.name == "missing_installer" && name == installerName {
-					continue
-				}
-				if err := os.WriteFile(filepath.Join(directory, name), data, 0o644); err != nil {
+			if test.name != "missing_installer" {
+				path := filepath.Join(directory, installerName)
+				if test.name == "symlink_installer" {
+					target := filepath.Join(t.TempDir(), "target.exe")
+					if err := os.WriteFile(target, installer.Bytes(), 0o644); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.Symlink(target, path); err != nil {
+						t.Fatal(err)
+					}
+				} else if err := os.WriteFile(path, installer.Bytes(), 0o644); err != nil {
 					t.Fatal(err)
 				}
-				if err := os.WriteFile(filepath.Join(directory, name+".sha256"), []byte(digest(data)+"  "+name+"\n"), 0o644); err != nil {
+				sums := digest(installer.Bytes()) + "  " + installerName + "\n"
+				if test.name == "corrupt_checksum" {
+					sums = "z" + sums[1:]
+				} else if test.name == "checksum_wrong_name" {
+					sums = digest(installer.Bytes()) + "  another.exe\n"
+				} else if test.name == "checksum_no_newline" {
+					sums = strings.TrimSuffix(sums, "\n")
+				} else if test.name == "checksum_extra_newline" {
+					sums += "\n"
+				}
+				if err := os.WriteFile(path+".sha256", []byte(sums), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			extra := map[string]string{"extra_msi": "bridge.msi", "extra_app_zip": "application.zip",
+				"extra_installer_zip": "installer.zip", "extra_notice": "NOTICE.txt"}[test.name]
+			if extra != "" {
+				if err := os.WriteFile(filepath.Join(directory, extra), []byte("must not publish"), 0o644); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -426,33 +455,6 @@ func TestTagPublicationFailuresRemainVisible(t *testing.T) {
 			if test.name == "different_package_version" {
 				f.env["RELEASE_VERSION"] = "v1.0.1"
 			}
-			if test.name == "manifest_version_mismatch" {
-				name := archiveName(f.source, "v1.0.2")
-				path := filepath.Join(directory, name)
-				files := readTestArchive(t, path)
-				var m manifest
-				if err := json.Unmarshal(files["build-manifest.json"], &m); err != nil {
-					t.Fatal(err)
-				}
-				m.Version = "v1.0.1"
-				files["build-manifest.json"], err = json.Marshal(m)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err := os.Remove(path); err != nil {
-					t.Fatal(err)
-				}
-				if err := writeArchive(path, files, time.Unix(0, 0)); err != nil {
-					t.Fatal(err)
-				}
-				data, err := os.ReadFile(path)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err := os.WriteFile(path+".sha256", []byte(digest(data)+"  "+name+"\n"), 0o644); err != nil {
-					t.Fatal(err)
-				}
-			}
 			t.Cleanup(func() {
 				fixtureGit(t, f.root, "--git-dir="+f.remote, "update-ref", "refs/tags/v1.0.2", f.env["TAG_OID"])
 			})
@@ -475,9 +477,18 @@ func TestTagPublicationFailuresRemainVisible(t *testing.T) {
 				}
 				for _, expected := range []string{"release create v1.0.2", "--verify-tag --target " + f.source,
 					"--title v1.0.2", "release edit v1.0.2", "--draft=false --prerelease=false --latest=false",
-					installerName, installerName + ".sha256", msiName, msiName + ".sha256"} {
+					installerName, installerName + ".sha256"} {
 					if !strings.Contains(string(calls), expected) {
 						t.Fatalf("publication lacks exact version/source or normal-release flags: %s", calls)
+					}
+					for _, line := range strings.Split(string(calls), "\n") {
+						if strings.HasPrefix(line, "release create ") {
+							args := strings.Fields(line)
+							if len(args) < 6 || args[3] != filepath.Join(directory, installerName) ||
+								args[4] != filepath.Join(directory, installerName+".sha256") || args[5] != "--repo" {
+								t.Fatal("publication must upload exactly EXE and checksum", line)
+							}
+						}
 					}
 				}
 			}

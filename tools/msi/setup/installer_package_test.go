@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -44,12 +43,17 @@ func installerTestPE() []byte {
 	copy(data[640:], "msi.dll\x00")
 	offset := 896
 	for i, name := range []string{"MsiInstallProductW", "MsiEnumProductsExW", "TaskDialogIndirect",
-		"CreateProcessW", "GetNamedPipeServerProcessId", "RegFlushKey"} {
+		"CreateProcessW", "GetNamedPipeServerProcessId", "RegFlushKey", "MsiOpenDatabaseW",
+		"BCryptHashData", "SetFileInformationByHandle", "GetFileInformationByHandle"} {
 		binary.LittleEndian.PutUint64(data[768+i*8:], uint64(0x1000+offset-512))
 		copy(data[offset+2:], name+"\x00")
 		offset += len(name) + 3
 	}
 	return data
+}
+
+func installerTestStub(revision string) []byte {
+	return append(installerTestPE(), []byte("VX_BUNDLE_SOURCE="+revision+"\x00")...)
 }
 
 func installerTestPayload(t *testing.T) (map[string][]byte, map[string][]byte, string, string) {
@@ -139,32 +143,31 @@ func TestInstallerBundleContract(t *testing.T) {
 	if err := verifyInstallerPayload(payload, app, revision, version); err != nil {
 		t.Fatal(err)
 	}
-	applicationName, installerName, msiName := installerNames(revision, version)
+	applicationName, installerName := installerNames(revision, version)
 	if applicationName != "vx-bridge-windows-amd64-"+version+"-"+revision+".zip" ||
-		installerName != "vx-bridge-installer-windows-amd64-"+version+"-"+revision+".zip" ||
-		msiName != strings.TrimSuffix(applicationName, ".zip")+".msi" {
+		installerName != "vx-bridge-installer-windows-amd64-"+version+".exe" ||
+		strings.Contains(installerName, revision) {
 		t.Fatal("unexpected version/source asset names")
 	}
-	_, developmentName, _ := installerNames(revision, "development")
+	_, developmentName := installerNames(revision, "development")
 	if strings.Contains(developmentName, "development") || !strings.Contains(developmentName, revision) {
 		t.Fatal("development identity does not match app package convention")
 	}
-	path := filepath.Join(t.TempDir(), installerName)
-	if err := writeInstallerZIP(path, payload); err != nil {
-		t.Fatal(err)
-	}
-	written, err := readPackageZIP(path, append(slices.Clone(installerFiles), "SHA256SUMS"))
+	payload["application.zip"] = []byte("synthetic original app archive")
+	data, err := installerEXE(installerTestStub(revision), payload, revision)
 	if err != nil {
 		t.Fatal(err)
 	}
+	written, err := readInstallerEXE(data, revision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	delete(written, "application.zip")
 	if err := verifyInstallerPayload(written, app, revision, version); err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(written["bridge.msi"], payload["bridge.msi"]) || !bytes.Equal(written["setup.exe"], payload["setup.exe"]) {
 		t.Fatal("bundle changed exact authored Setup/MSI bytes")
-	}
-	if err := writeInstallerZIP(path, payload); err == nil {
-		t.Fatal("existing installer archive was overwritten")
 	}
 }
 
@@ -279,7 +282,7 @@ func TestInstallerPackageFilesAreBoundedAndRegular(t *testing.T) {
 	}
 }
 
-func TestInstallerPackageWritesExactSixReleaseFiles(t *testing.T) {
+func TestInstallerPackageWritesExactTwoReleaseFiles(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("POSIX fake-tool packaging fixture runs in portable CI; static bundle tests run on Windows")
 	}
@@ -325,7 +328,11 @@ func TestInstallerPackageWritesExactSixReleaseFiles(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	appName, installerName, msiName := installerNames(revision, version)
+	appName, installerName := installerNames(revision, version)
+	stub := filepath.Join(media, "bundle-stub.exe")
+	if err := os.WriteFile(stub, installerTestStub(revision), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	archive := filepath.Join(t.TempDir(), appName)
 	var archiveBytes bytes.Buffer
 	writer := zip.NewWriter(&archiveBytes)
@@ -347,37 +354,90 @@ func TestInstallerPackageWritesExactSixReleaseFiles(t *testing.T) {
 	stubs := t.TempDir()
 	// Real application verification has separate end-to-end tests in tools/dist.
 	// This stub isolates installer packaging from the synthetic application bytes.
-	stub := "#!/bin/sh\n[ \"$1 $2 $3 $4\" = 'run -mod=readonly ./tools/dist -revision' ]\n"
-	if err := os.WriteFile(filepath.Join(stubs, "go"), []byte(stub), 0o755); err != nil {
+	goStub := "#!/bin/sh\n[ \"$1 $2 $3 $4\" = 'run -mod=readonly ./tools/dist -revision' ]\n"
+	if err := os.WriteFile(filepath.Join(stubs, "go"), []byte(goStub), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", stubs+string(os.PathListSeparator)+os.Getenv("PATH"))
 	t.Chdir(root)
 	out := filepath.Join(t.TempDir(), "release assets")
-	if err := installerPackage(revision, version, archive, media, filepath.Join(media, "MINGW-COPYRIGHT.txt"), out, "", 0); err != nil {
+	if err := installerPackage(revision, version, archive, media, filepath.Join(media, "MINGW-COPYRIGHT.txt"), stub, out, "", 0); err != nil {
 		t.Fatal(err)
 	}
 	entries, err := os.ReadDir(out)
-	if err != nil || len(entries) != 6 {
-		t.Fatal("release output must have exactly three assets plus checksums", entries, err)
+	if err != nil || len(entries) != 2 || entries[0].Name() != installerName || entries[1].Name() != installerName+".sha256" {
+		t.Fatal("release output must have exactly the version-named EXE and checksum", entries, err)
 	}
-	for _, name := range []string{appName, installerName, msiName} {
+	for _, name := range []string{installerName} {
 		data, err := os.ReadFile(filepath.Join(out, name))
 		if err != nil {
 			t.Fatal(err)
 		}
 		sums, err := os.ReadFile(filepath.Join(out, name+".sha256"))
 		if err != nil || string(sums) != digest(data)+"  "+name+"\n" {
-			t.Fatal("release checksum must bind the exact version/source filename", string(sums), err)
+			t.Fatal("release checksum must bind the exact version filename", string(sums), err)
 		}
-		if name == appName && !bytes.Equal(data, archiveBytes.Bytes()) {
-			t.Fatal("application ZIP was repackaged")
+		written, err := readInstallerEXE(data, revision)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if name == msiName && !bytes.Equal(data, payload["bridge.msi"]) {
-			t.Fatal("direct MSI differs from authored bytes")
+		for _, file := range installerFiles {
+			if !bytes.Equal(written[file], payload[file]) {
+				t.Fatal("bundle changed authored bytes", file)
+			}
+		}
+		if !bytes.Equal(written["application.zip"], archiveBytes.Bytes()) {
+			t.Fatal("embedded application ZIP was repackaged")
 		}
 	}
-	if err := installerPackage(revision, version, filepath.Join(out, appName), "", "", "", filepath.Join(out, installerName), 0); err != nil {
+	if err := installerPackage(revision, version, "", "", "", "", "", filepath.Join(out, installerName), 0); err != nil {
 		t.Fatal(err)
+	}
+	if err := installerPackage(revision, version, archive, media, filepath.Join(media, "MINGW-COPYRIGHT.txt"), stub, out, "", 0); err == nil {
+		t.Fatal("existing release output directory was reused")
+	}
+}
+
+func TestInstallerEXERejectsCorruptLayoutAndBytes(t *testing.T) {
+	for _, name := range []string{"truncated", "magic", "source", "stub-size", "stub-hash",
+		"stub-bytes", "entry-size", "empty-entry", "entry-hash", "entry-bytes", "trailing", "extra-byte"} {
+		t.Run(name, func(t *testing.T) {
+			payload, _, revision, _ := installerTestPayload(t)
+			payload["application.zip"] = []byte("synthetic app archive")
+			data, err := installerEXE(installerTestStub(revision), payload, revision)
+			if err != nil {
+				t.Fatal(err)
+			}
+			footer := data[len(data)-bundleFooterSize:]
+			switch name {
+			case "truncated":
+				data = data[:100]
+			case "magic":
+				footer[0] ^= 1
+			case "source":
+				footer[16] = 'b'
+			case "stub-size":
+				binary.LittleEndian.PutUint64(footer[8:], ^uint64(0))
+			case "stub-hash":
+				footer[56] ^= 1
+			case "stub-bytes":
+				data[100] ^= 1
+			case "entry-size":
+				binary.LittleEndian.PutUint32(footer[88:], ^uint32(0))
+			case "empty-entry":
+				binary.LittleEndian.PutUint32(footer[88:], 0)
+			case "entry-hash":
+				footer[92] ^= 1
+			case "entry-bytes":
+				data[len(installerTestStub(revision))+100] ^= 1
+			case "trailing":
+				data = append(data, 0)
+			case "extra-byte":
+				data = append(append(data[:len(data)-bundleFooterSize:len(data)-bundleFooterSize], 0), footer...)
+			}
+			if _, err := readInstallerEXE(data, revision); err == nil {
+				t.Fatal("corrupt self-contained installer accepted")
+			}
+		})
 	}
 }

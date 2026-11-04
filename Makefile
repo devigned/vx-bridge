@@ -11,7 +11,7 @@ override GOTOOLCHAIN := local
 export GO GOFMT POWERSHELL CGO_ENABLED GOTOOLCHAIN REVISION RELEASE_VERSION OUT ARCHIVE NATIVE_DLL
 export NATIVE_DIR SETUP_STAGING WIX_ARCHIVE TOOL_LOG SETUP_BUILD_PROFILE
 export WORKFLOW_REVISION BUILD_INPUT_DIR EVIDENCE_DIR NATIVE_ARTIFACT_ID NATIVE_ARTIFACT_DIGEST
-export AUTHORED_SETUP MINGW_COPYRIGHT INSTALLER_ARCHIVE LIFECYCLE_EVIDENCE
+export AUTHORED_SETUP MINGW_COPYRIGHT BUNDLE_STUB INSTALLER_ARCHIVE LIFECYCLE_EVIDENCE
 
 .PHONY: help help-installer help-qualification build package verify-package install-setup-toolchain build-setup-input build-setup-artifacts package-installer verify-installer build-setup-native prepare-setup build-setup-msi build-lifecycle-input author-lifecycle test-installer-lifecycle restore-lifecycle-policy test-native-tools test test-race vet fmt fmt-check check ci ci-windows benchmark lint-workflows check-commands release-resolve release-verify release-publish
 
@@ -46,11 +46,11 @@ help-installer:
 	@printf '%s\n' \
 	  'Installer builds (static authoring/integrity only; no product execution):' \
 	  '  make install-setup-toolchain  Explicit pinned MinGW provisioning on the approved Linux builder' \
-	  '  make build-setup-native      Pinned C Setup/actions cross-build; REVISION/OUT' \
+	  '  make build-setup-native      Pinned C Setup/actions/bundle stub cross-build; REVISION/OUT' \
 	  '  make prepare-setup           Verify and stage application/native inputs; ARCHIVE/NATIVE_DIR/OUT' \
 	  '  make build-setup-msi          Windows WiX authoring, tables/CAB inspection; SETUP_STAGING/WIX_ARCHIVE/TOOL_LOG/OUT' \
-	  '  make package-installer       Matching Setup/MSI bundle and original app ZIP; AUTHORED_SETUP/ARCHIVE/MINGW_COPYRIGHT/OUT' \
-	  '  make verify-installer        Check existing bundle against app ZIP; INSTALLER_ARCHIVE/ARCHIVE' \
+	  '  make package-installer       Self-contained EXE + checksum; AUTHORED_SETUP/ARCHIVE/MINGW_COPYRIGHT/BUNDLE_STUB/OUT' \
+	  '  make verify-installer        Check EXE, embedded media and app ZIP; INSTALLER_ARCHIVE' \
 	  '  make build-setup-input       Shared exact-source Linux input job; source/run/version identity' \
 	  '  make build-setup-artifacts   Shared Windows author/inspect/package job; exact input artifact identity' \
 	  '  make test-native-tools       Fake-tool logging/exit regression; new external OUT' \
@@ -102,17 +102,17 @@ package-installer:
 	  : "$${AUTHORED_SETUP:?Set AUTHORED_SETUP to the inspected Windows authoring output}"; \
 	  : "$${ARCHIVE:?Set ARCHIVE to the exact verified application ZIP}"; \
 	  : "$${MINGW_COPYRIGHT:?Set MINGW_COPYRIGHT to the pinned compiler copyright file}"; \
+	  : "$${BUNDLE_STUB:?Set BUNDLE_STUB to the matching native bundle-stub.exe}"; \
 	  : "$${OUT:?Set OUT to a new external release artifact directory}"; \
 	  "$$GO" run -mod=readonly ./tools/msi/setup -revision "$${REVISION:-$$(git rev-parse HEAD)}" \
 	    -version "$$RELEASE_VERSION" -archive "$$ARCHIVE" -installer "$$AUTHORED_SETUP" \
-	    -copyright "$$MINGW_COPYRIGHT" -out "$$OUT"
+	    -copyright "$$MINGW_COPYRIGHT" -bundle-stub "$$BUNDLE_STUB" -out "$$OUT"
 
 verify-installer:
 	@set -euo pipefail; \
-	  : "$${ARCHIVE:?Set ARCHIVE to the exact application ZIP}"; \
-	  : "$${INSTALLER_ARCHIVE:?Set INSTALLER_ARCHIVE to the matching installer ZIP}"; \
+	  : "$${INSTALLER_ARCHIVE:?Set INSTALLER_ARCHIVE to the self-contained installer EXE}"; \
 	  "$$GO" run -mod=readonly ./tools/msi/setup -revision "$${REVISION:-$$(git rev-parse HEAD)}" \
-	    -version "$$RELEASE_VERSION" -archive "$$ARCHIVE" -verify-installer "$$INSTALLER_ARCHIVE"
+	    -version "$$RELEASE_VERSION" -verify-installer "$$INSTALLER_ARCHIVE"
 
 build-setup-native:
 	@REVISION="$${REVISION:-$$(git rev-parse HEAD)}" bash installer/build-setup-native.sh

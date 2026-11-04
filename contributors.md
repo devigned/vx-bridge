@@ -104,13 +104,17 @@ ARCHIVE="/absolute/path/to/artifacts/new-build/vx-bridge-windows-amd64-$revision
 
 This creates and inspects a Windows x64 application ZIP without running either
 executable. It is a development package, not an installer or a tested playing
-release. It does not include the native Setup/MSI pair. The
+release. It does not include the native Setup/MSI pair and is not uploaded separately
+as a release asset. The
 [build and package reference](docs/technical/COMMANDS.md#build-and-verify-a-package)
 explains the two executable names, metadata and output rules.
 
 Installer builds use a separate native/Windows toolchain and explicit commands
-in the [installer manual](docs/technical/INSTALLER.md). An MSI alone is not the
-user install route: the current package requires its matching `setup.exe`.
+in the [installer manual](docs/technical/INSTALLER.md). The public installer
+is one self-contained EXE containing the matching native Setup/MSI pair,
+support files and notices. Only that EXE and its checksum are uploaded for
+future releases; GitHub also supplies source archives. An extracted MSI alone
+is not the user install route.
 
 Don't copy a build over vendor files or onto a simulator just to see whether it
 works. Real-equipment trials require separate owner approval, a reviewed artifact

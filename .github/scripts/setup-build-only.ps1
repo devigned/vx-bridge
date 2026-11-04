@@ -52,7 +52,7 @@ try {
     Assert-ExactBuildSource
     $identity=if ($env:RELEASE_VERSION -ceq 'development') { $env:REVISION } else { "$env:RELEASE_VERSION-$env:REVISION" }
     $archiveName = "vx-bridge-windows-amd64-$identity.zip"
-    $hashed = @('setup.exe','setup-actions.dll','native-inputs.txt','native-SHA256SUMS',
+    $hashed = @('setup.exe','setup-actions.dll','bundle-stub.exe','native-inputs.txt','native-SHA256SUMS',
         $archiveName,"$archiveName.sha256",'linux-payload.wxs','linux-setup-input.json',
         'compiler.txt','packages.txt','mingw-copyright.txt')
     $allowed = $hashed + @('INPUT-SHA256SUMS','provenance.json')
@@ -96,7 +96,7 @@ try {
             $sourceHashes[$relative]=$true
         }
     }
-    if ($sourceHashes.Count -ne 11) { throw 'Native source/resource inventory differs.' }
+    if ($sourceHashes.Count -ne 13) { throw 'Native source/resource inventory differs.' }
     $env:ARCHIVE=Join-Path $inputs $archiveName
     $env:NATIVE_DIR=$inputs
     $env:OUT=$staging
@@ -140,6 +140,7 @@ try {
     $summary.msi_sha256=$msiHash
     $env:AUTHORED_SETUP=$output
     $env:MINGW_COPYRIGHT=Join-Path $inputs 'mingw-copyright.txt'
+    $env:BUNDLE_STUB=Join-Path $inputs 'bundle-stub.exe'
     $env:OUT=Join-Path $env:RUNNER_TEMP 'release-artifacts'
     Invoke-LoggedNativeTool -FilePath 'make' -LogPath $controlLog -Arguments @('-C',$source,'package-installer') | Out-Host
     $summary.success=$true

@@ -24,7 +24,7 @@ archiveName="vx-bridge-windows-amd64-$identity.zip"
 archive="$application/$archiveName"
 ARCHIVE="$archive" NATIVE_DIR="$native" OUT="$staging" make prepare-setup
 mkdir "$bundle"
-cp "$native/setup.exe" "$native/setup-actions.dll" "$native/native-inputs.txt" \
+cp "$native/setup.exe" "$native/setup-actions.dll" "$native/bundle-stub.exe" "$native/native-inputs.txt" \
   "$native/native-SHA256SUMS" "$archive" "$archive.sha256" "$bundle/"
 cp "$staging/payload.wxs" "$bundle/linux-payload.wxs"
 cp "$staging/setup-input.json" "$bundle/linux-setup-input.json"
@@ -47,10 +47,10 @@ while IFS= read -r line; do
     count=$((count+1))
   fi
 done < "$native/native-inputs.txt"
-[[ "$count" == 11 ]]
+[[ "$count" == 13 ]]
 (
   cd "$bundle"
-  sha256sum setup.exe setup-actions.dll native-inputs.txt native-SHA256SUMS \
+  sha256sum setup.exe setup-actions.dll bundle-stub.exe native-inputs.txt native-SHA256SUMS \
     "$archiveName" "$archiveName.sha256" \
     linux-payload.wxs linux-setup-input.json compiler.txt packages.txt mingw-copyright.txt > INPUT-SHA256SUMS
 )

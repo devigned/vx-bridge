@@ -13,8 +13,8 @@ The reviewed cross compiler is GCC/MinGW-w64 from Ubuntu's pinned packages.
 Compiler tools are not redistributed. libgcc runtime portions, if included, are
 covered by GCC's GPLv3 plus GCC Runtime Library Exception 3.1:
 https://www.gnu.org/licenses/gcc-exception-3.1.html
-Setup and its callback DLL have no libgcc/libwinpthread runtime DLL dependency;
-their imported DLLs are Windows system DLLs. The installer ZIP includes the
+Setup, its outer bundle and callback DLL have no libgcc/libwinpthread runtime DLL
+dependency; their imported DLLs are Windows system DLLs. The installer EXE includes the
 actual pinned GCC and MinGW header package copyright records in
 MINGW-COPYRIGHT.txt. Compiler versions and source hashes are retained as build
 evidence, not installed application dependencies.

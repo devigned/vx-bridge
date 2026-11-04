@@ -45,7 +45,8 @@ func main() {
 	checkAuthoring := flag.String("verify-authoring", "", "validate the exact intentional advertise-action omission policy")
 	installer := flag.String("installer", "", "package existing statically inspected Windows authoring output")
 	copyright := flag.String("copyright", "", "pinned MinGW compiler copyright for installer distribution")
-	verifyInstaller := flag.String("verify-installer", "", "verify an existing installer ZIP against the application ZIP")
+	bundleStub := flag.String("bundle-stub", "", "matching native outer bundle stub")
+	verifyInstaller := flag.String("verify-installer", "", "verify a self-contained installer EXE and its embedded application ZIP")
 	profile := flag.String("profile", normalProfile, "normal, or explicitly gated private lifecycle fault authoring")
 	flag.Parse()
 	if *installer != "" || *verifyInstaller != "" {
@@ -53,14 +54,14 @@ func main() {
 			fmt.Fprintln(os.Stderr, "setup: installer packaging requires only the normal authoring profile")
 			os.Exit(1)
 		}
-		if err := installerPackage(*revision, *version, *archive, *installer, *copyright, *out, *verifyInstaller, flag.NArg()); err != nil {
+		if err := installerPackage(*revision, *version, *archive, *installer, *copyright, *bundleStub, *out, *verifyInstaller, flag.NArg()); err != nil {
 			fmt.Fprintln(os.Stderr, "setup:", err)
 			os.Exit(1)
 		}
 		return
 	}
-	if *copyright != "" {
-		fmt.Fprintln(os.Stderr, "setup: -copyright requires -installer")
+	if *copyright != "" || *bundleStub != "" {
+		fmt.Fprintln(os.Stderr, "setup: -copyright and -bundle-stub require -installer")
 		os.Exit(1)
 	}
 	if *checkAuthoring != "" {
@@ -435,6 +436,15 @@ func checkedPE(path string, dll bool) ([]byte, error) {
 }
 
 func checkPEBytes(data []byte, dll bool) error {
+	required := []string{"MsiInstallProductW", "MsiEnumProductsExW", "TaskDialogIndirect", "CreateProcessW"}
+	if dll {
+		required = []string{"MsiGetActiveDatabase", "MsiGetMode", "MsiProcessMessage", "MsiGetPropertyW",
+			"MsiGetProductInfoExW", "MsiGetSummaryInformationW", "MsiDatabaseOpenViewW"}
+	}
+	return checkNativePE(data, dll, append(required, "GetNamedPipeServerProcessId", "RegFlushKey"))
+}
+
+func checkNativePE(data []byte, dll bool, required []string) error {
 	if len(data) == 0 || len(data) > 2<<20 {
 		return errors.New("native input must be bounded")
 	}
@@ -465,12 +475,6 @@ func checkPEBytes(data []byte, dll bool) error {
 			return fmt.Errorf("forbidden native import %s", name)
 		}
 	}
-	required := []string{"MsiInstallProductW", "MsiEnumProductsExW", "TaskDialogIndirect", "CreateProcessW"}
-	if dll {
-		required = []string{"MsiGetActiveDatabase", "MsiGetMode", "MsiProcessMessage", "MsiGetPropertyW",
-			"MsiGetProductInfoExW", "MsiGetSummaryInformationW", "MsiDatabaseOpenViewW"}
-	}
-	required = append(required, "GetNamedPipeServerProcessId", "RegFlushKey")
 	for _, name := range required {
 		found := false
 		for _, imported := range imports {
