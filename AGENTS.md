@@ -8,8 +8,10 @@ use a branch and a pull request, including fixes to CI, documentation, release
 scripts, and these rules. Never push directly to `main`, force-push it, bypass
 its protections, or amend or rewrite published history.
 
-Every commit you create must be cryptographically signed with the owner's
-existing configured Git signing identity. Verify the signature before pushing.
+Every commit you create must be cryptographically signed with the authorizing
+user's existing configured Git signing identity. When acting for this repository's
+owner, use that owner's configured identity; other users use their own identities,
+never a shared owner key. Verify the signature before pushing.
 Author text and a `Co-authored-by` trailer are not signatures. Never disable
 signing, fall back to unsigned commits, generate or substitute a signing key,
 or expose signing credentials. Stop and report unavailable signing capability.

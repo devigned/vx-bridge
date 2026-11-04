@@ -121,8 +121,9 @@ separates automated checks from actual compatibility evidence.
 All changes after the authorized initial bootstrap must go through a branch
 and pull request. Never push directly to `main`, force-push it, bypass its
 protections, or rewrite published history, even to repair CI.
-Every commit you create must be cryptographically signed using the owner's
-existing configured Git signing identity. Verify that signature before pushing;
+Every commit you create must be cryptographically signed using your own
+existing configured Git signing identity, never a shared repository-owner key.
+Verify that signature before pushing;
 author text or a co-author trailer is not enough. If signing is unavailable,
 stop rather than disable it or substitute a key. See [AGENTS.md](AGENTS.md).
 
