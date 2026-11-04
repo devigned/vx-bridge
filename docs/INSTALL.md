@@ -3,7 +3,8 @@
 [User guides](README.md) / Installation
 
 VX Bridge connects ProTee Labs to your choice of Infinite Tees or GSPro OpenAPI.
-Follow these steps only for an approved pilot build.
+The [v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+is available, but has not been qualified for installation or live play on a golf PC.
 
 ## Before you start
 
@@ -19,16 +20,15 @@ runtime.
 
 ## Choose the right files
 
-**No public installer or GitHub release is published yet.** Approved pilot
-testers should get the reviewed installer files and compatibility notes from the
-pilot organizer. The public
-[Releases page](https://github.com/devigned/vx-bridge/releases)
-has no published installer or public version to recommend. Source availability
-does not make a development build a qualified playing release.
+**[Download the v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).**
+Its exact filename is
+`vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip`.
+The [release page](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+also includes other files; publication does not make this a qualified playing release.
 
-For an approved tagged build, **choose the installer ZIP**. The tag-delivery
-contract uses these filenames; this does not mean a release is available now.
-`vX.Y.Z` is the version and `<40sha>` identifies the source commit.
+**Choose the installer ZIP**, not the application ZIP or MSI alone.
+In the filename patterns below, `vX.Y.Z` is the version and `<40sha>` identifies
+the source commit.
 
 | Files | What they are for |
 |---|---|
@@ -50,9 +50,11 @@ together: `setup.exe`, `bridge.msi`, the information files `setup-input.json` an
 `msi-inspection.json`, the notices/licenses `INSTALLER-NOTICE.txt`,
 `MINGW-COPYRIGHT.txt`, `LICENSE` and `THIRD_PARTY_NOTICES.txt`, and `SHA256SUMS`.
 
-Keep the download's separate checksum alongside the archive. There is no
-signed-publisher claim today: a checksum checks file contents, not who published
-them. Don't disable Windows security protections to run an unverified file.
+The separate `.sha256` files are optional integrity checks, not installers.
+The Windows programs and installer are not publisher-signed (Authenticode);
+the signed Git tag does not sign them. A checksum checks file contents, not who
+published them. If Windows blocks Setup, stop and report the warning; don't
+disable security protections or bypass a warning to continue.
 
 Untagged developer application ZIPs use
 `vx-bridge-windows-amd64-<revision>.zip`. See
@@ -65,7 +67,7 @@ not these setup steps, for development packages.
    Labs**, then close that receiver through its own controls. For an existing
    VX Bridge, choose **Quit** after disconnecting Labs. Never run two receivers,
    force-close an attached one or overwrite the vendor's `GSPconnect.exe`.
-2. Open the approved **`setup.exe`** normally as the Windows user who will use
+2. Open the extracted **`setup.exe`** normally as the Windows user who will use
    the bridge, **not as administrator**. Choose **Install** for a fresh install.
 3. Leave **Auto-launch on Windows Startup** off unless you want the bridge to
    open when you sign in. Its helper says: **Starts when you sign in to Windows.**
@@ -80,13 +82,14 @@ connects Labs, or changes your saved game choice. If the one-time launch fails
 after installation succeeded, resolve the reported runtime conflict and open
 the installed **VX Bridge** shortcut; don't reinstall just to retry launching.
 
-**Pilot status:** an earlier private installer candidate passed hosted Windows
-installation, damaged-file repair, one controlled version-to-version upgrade,
-full uninstall and explicit uninstall/reinstall recovery checks as a standard
-user. This does not qualify the public bootstrap or rebuilt binaries, or verify
-interactive setup, the Start bridge prompt, actual
-Windows sign-in or live Labs/game use. GSPro and game switching still need live
-testing for this candidate. The
+**Qualification limits:** v0.1.0 passed automated build and static file checks,
+not real installer servicing or live-equipment tests. An earlier private installer
+candidate passed hosted Windows installation, damaged-file repair, one controlled
+version-to-version upgrade, full uninstall and explicit uninstall/reinstall
+recovery checks as a standard user. This does not qualify v0.1.0 or rebuilt
+binaries, or verify interactive setup, the Start bridge prompt, actual Windows
+sign-in or live Labs/game use. GSPro and game switching still need live testing
+for v0.1.0. The
 [qualification summary](technical/QUALIFICATION.md) records the bounded prior
 observations and limits.
 
@@ -137,8 +140,8 @@ Setup verifies a consistent installation. Repair can restore damaged files, but
 **may not resolve a failed upgrade with multiple registered versions**.
 
 If Repair cannot complete, use **complete Uninstall followed by a fresh Install**.
-If Windows lists more than one interrupted VX Bridge version, ask the pilot
-organizer for the recorded-version recovery instructions. That path removes the
+If Windows lists more than one interrupted VX Bridge version, ask a project
+maintainer for the recorded-version recovery instructions. That path removes the
 original recorded old version, fully uninstalls the current version, confirms
 complete removal, then installs fresh. Removing just one version is not completed
 recovery or permission to start the remaining bridge.

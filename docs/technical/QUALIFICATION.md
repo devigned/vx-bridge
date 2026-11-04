@@ -11,15 +11,38 @@ Passing CI does not turn an unsigned development package into a release or
 qualify later binaries on a golf PC.
 
 The current source implements remembered IT/GSPro OpenAPI/Standby selection
-and recovery-first-v2 installation. It has no public installer, repository tag,
-or GitHub release. There is no official vendor endorsement or live GSPro/
-cross-game qualification. [Testing](TESTING.md) describes software coverage;
+and recovery-first-v2 installation. The public v0.1.0 tag and release are now
+published; their bounded verification is recorded below. There is no official
+vendor endorsement or live GSPro/cross-game qualification.
+[Testing](TESTING.md) describes software coverage;
 the [research boundary](research/README.md) explains what is retained publicly.
 This repository starts from a source-only bootstrap without the earlier private
-history, run artifacts or investigation ledgers. The observations below concern
-older, separately identified instruments and candidates, not this bootstrap
-commit or binaries rebuilt from it. Original private records remain unchanged;
+history, run artifacts or investigation ledgers. The historical installer and
+bridge observations below concern older, separately identified instruments and
+candidates, not this bootstrap commit or binaries rebuilt from it.
+Original private records remain unchanged;
 no old hash, run or issue is relabeled as belonging to this repository.
+
+## Public release publication
+
+[v0.1.0](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0) targets public
+source commit `5401cf26d19238b04ba3dbb8ecfa60442616ca79`. Its annotated tag was
+cryptographically signed with the owner's existing Git signing identity and
+verified locally and by GitHub. The
+[tag-triggered release run](https://github.com/devigned/vx-bridge/actions/runs/41832770003)
+completed its build, static package verification and publication jobs.
+
+The published application ZIP, installer ZIP, direct matching MSI and three
+SHA-256 files were downloaded and verified. All six files matched that run's
+exact immutable artifact bytes and GitHub asset digests. The application manifest
+identified the tagged source and v0.1.0; the installer ZIP had the expected nine
+flat entries, and its `bridge.msi` matched the direct MSI.
+
+No product executable or installer was run for these checks. This establishes
+publication and artifact integrity, not interactive installation, Windows sign-in,
+installer servicing or real Labs/game compatibility for v0.1.0. The emitted
+Windows programs and installer are not Authenticode-signed; signed source commits
+and tags do not sign those files.
 
 ## Installer observations
 
@@ -123,8 +146,8 @@ framing/fields/units, receipts, putting/handedness, and bidirectional switching.
 
 Long sessions, partial/uncertain live in-flight recovery, all source-reconnect
 modes, sleep/resume, broad/dynamic DPI, attached-source Explorer restoration,
-general installer interruptions, signing, and actual tag-release publication
-also remain outside completed qualification.
+general installer interruptions and Authenticode signing also remain outside
+completed qualification. The publication check above does not close these gaps.
 
 New real-equipment trials require separate owner approval for an exact
 artifact, scope, risks, and cleanup. Record goal attainment, actual departure,

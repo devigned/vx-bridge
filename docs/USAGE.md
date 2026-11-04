@@ -3,9 +3,9 @@
 [User guides](README.md) / Everyday use
 
 Open VX Bridge, choose today's game, connect Labs and check the game before
-swinging. These instructions are for an approved pilot build, not a public
-ready-to-play release. Live Labs/game use, GSPro and game switching for the
-current installer candidate still need testing.
+swinging. [v0.1.0 is published](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0),
+but is not yet a qualified ready-to-play release. Live Labs/game use, GSPro and
+game switching for these binaries still need testing.
 
 ## Start a session
 

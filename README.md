@@ -8,57 +8,79 @@ small icon near the Windows clock; your choice is remembered. Labs still manages
 your launch monitor, and the game handles ball flight. You don't need to swap
 connector files whenever you change games.
 
-## Get started
+## Download and install
+
+**[Download VX Bridge v0.1.0 for Windows x64 (installer ZIP)](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip)**
+
+This is the installer ZIP from the [v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0).
+You do **not** need the application-only ZIP, separate MSI, `.sha256` files or
+**Source code** downloads to install.
+
+**Early release:** automated build and file checks passed, but these binaries
+have not been qualified for interactive installation, Windows sign-in or live
+Labs/game use, including GSPro and game switching. Earlier trials used different
+builds; they do not prove v0.1.0 is ready to play. See the
+[tested scope and remaining gaps](docs/technical/QUALIFICATION.md).
 
 You'll need **Windows x64**, an activated **ProTee VX with Labs already working**,
-and a **licensed Infinite Tees or GSPro game on the same PC**. For GSPro, use its
-public **OpenAPI / APIv1 Connect** application, not the native VX receiver.
-VX Bridge does not include a game or replace your existing licenses.
+and a **licensed Infinite Tees or GSPro game on the same PC**. VX Bridge does not
+include a game or replace your existing licenses.
 
-**Public source; no public installer release yet.** An earlier installer candidate
-passed hosted Windows checks for installation, damaged-file repair, one
-controlled version upgrade, full uninstall and recovery by uninstall/reinstall.
-That does not qualify this public bootstrap or a rebuilt binary. Interactive
-setup, Windows sign-in and live Labs/game behavior for the current source,
-including GSPro and game switching, still need testing. Earlier Infinite Tees
-trials do not qualify it as a ready-to-play release.
+1. **Close any existing receiver safely.** In ProTee Labs, choose **Game Options >
+   Disconnect**, then close the old receiver through its own controls. Never run
+   two receivers or replace the vendor's `GSPconnect.exe`.
+2. **Extract the whole download.** Right-click the downloaded installer ZIP,
+   choose **Extract All**, then open the extracted folder. Keep all nine files
+   together, especially `setup.exe` and `bridge.msi`. Don't run Setup from inside
+   the ZIP or mix files from different downloads.
+3. **Open `setup.exe` and choose Install.** Open it normally as the Windows user
+   who will play, **not as administrator**. Don't double-click `bridge.msi`.
+   Leave **Auto-launch on Windows Startup** off unless you want VX Bridge to
+   open when you sign in; it is off on a fresh install.
+4. **Wait for Setup to report success.** At **Start the bridge now?**, choose
+   **Start bridge** to open it once, or **Not now** to open **VX Bridge** from
+   the Windows Start menu later. Starting it once does not enable auto-launch.
 
-For an approved pilot build:
+**If Windows blocks Setup:** the Windows programs and installer are not
+publisher-signed (Authenticode). The signed Git tag does not sign them.
+Don't disable Windows security protections or bypass a warning to continue;
+[report the warning](https://github.com/devigned/vx-bridge/issues).
 
-1. **Choose the approved installer ZIP from the pilot organizer.** Use
-   **Extract All**, then keep matching `setup.exe` and `bridge.msi` in the
-   extracted folder with the accompanying files. Choose the installer ZIP,
-   not the application ZIP or MSI alone; see
-   [filenames and which files to use](docs/INSTALL.md#choose-the-right-files).
-2. **Close any existing receiver safely.** In ProTee Labs, use **Game Options >
-   Disconnect**, then close that receiver through its own controls. Never run
-   two receivers or overwrite the vendor's `GSPconnect.exe`.
-3. **Open `setup.exe` and choose Install.** Run it normally as your Windows user,
-   not as administrator. Don't double-click `bridge.msi` to install it.
-   **Auto-launch on Windows Startup** is optional and off on a fresh install:
-   "Starts when you sign in to Windows." After successful setup, **Start bridge**
-   opens it once; **Not now** lets you open **VX Bridge** from Start later.
-4. **Open your game and choose it in VX Bridge.** Right-click the bridge icon
-   near the clock (check hidden icons too), then choose **Use Infinite Tees** or
-   **Use GSPro OpenAPI**. For GSPro, open its OpenAPI Connect application as well.
-   **Standby (discard shots)** keeps Labs connected but sends shots to neither game.
-5. **Connect in ProTee Labs and check the game.** Use Labs' normal Connect action
-   if needed. The menu should show Labs connected and the selected game
-   **Connected (transport only)**. Confirm the game is in a playable scene:
-   a connection alone does **not** mean it is ready for your next shot.
+## First use
 
-Neither launch option opens Labs or the game, connects Labs, or changes your
-saved game choice. For another day, open VX Bridge and your game, check the tray
-choice, and connect Labs.
+1. **Open your game** and enter a playable practice scene. For GSPro, also open
+   its public **OpenAPI / APIv1 Connect** application, not the native VX receiver.
+2. **Open VX Bridge** from Start if it isn't already running. Find its small
+   icon near the Windows clock; check the hidden-icons arrow if needed.
+3. **Right-click the icon and choose your game:** **Use Infinite Tees** or
+   **Use GSPro OpenAPI**. A checkmark shows the applied choice, which is remembered.
+   **Standby (discard shots)** sends shots to neither game.
+4. **Connect in ProTee Labs** using its normal Connect action if needed. VX
+   Bridge does not open Labs or the game, or connect Labs for you.
+5. **Check both the menu and the game.** The menu should show Labs connected
+   and your chosen game **Connected (transport only)**. That confirms a data
+   connection, not readiness to play. Check the game itself before swinging and
+   confirm each shot's visible result before the next swing.
+
+**Next time:** open your game and VX Bridge, check the selected game, then
+connect Labs. Only your selected game receives shots; opening a game does not
+select it automatically.
 
 **When finished:** use **Game Options > Disconnect in ProTee Labs**, then
 **Quit** in VX Bridge. Quit waits while Labs is still attached; don't force it
 closed with Task Manager.
 
-Need help? [Installation and repair](docs/INSTALL.md),
-[everyday use](docs/USAGE.md) and the [troubleshooting FAQ](docs/FAQ.md) cover the
-next steps. If you see **Repair required**, use VX Bridge Setup; a failed upgrade
-may need a complete uninstall and fresh install rather than Repair alone.
+## If something isn't working
+
+| What you see | What to do |
+|---|---|
+| No bridge icon | Check hidden icons near the clock. Open **VX Bridge** from Start, not another downloaded copy. |
+| Labs won't connect, or the game stays unavailable | Check that only one receiver is running, the game is open and the correct game is selected. For GSPro, open **OpenAPI / APIv1 Connect** too. [Connection help](docs/FAQ.md#protee-labs-wont-connect). |
+| **Repair required** | Open **VX Bridge Setup** from Start and choose **Repair / Reinstall**. Don't replace files manually. A failed upgrade may need complete uninstall/reinstall; [follow the recovery guide](docs/INSTALL.md#maintenance-and-repair-required). |
+
+Don't hit extra shots to fix a connection. Check the game first if a shot is
+missing or uncertain: it may already have arrived. See
+[everyday use](docs/USAGE.md) and the [FAQ](docs/FAQ.md) for more help.
 
 ## Change games without changing the connection
 
@@ -85,7 +107,7 @@ For code work, use the [build and command guide](docs/technical/COMMANDS.md),
 [testing guide](docs/technical/TESTING.md) and
 [technical manual](docs/technical/README.md). The
 [compatibility evidence and remaining gaps](docs/technical/QUALIFICATION.md)
-distinguish tested behavior from work still needed before release.
+distinguish automated release checks from live compatibility still needing testing.
 
 ## Open-source license
 

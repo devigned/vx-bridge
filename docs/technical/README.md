@@ -44,8 +44,10 @@ An earlier private installer candidate passed a recorded same-source,
 same-native-core lifecycle on a disposable hosted Windows machine, including
 explicit recovery after an induced failure. That does not qualify the public
 bootstrap or a rebuilt artifact, and is not client-PC, interactive
-installer, sign-in, attached-Labs, or cross-game qualification. No public
-installer, repository tag, or GitHub release is published.
+installer, sign-in, attached-Labs, or cross-game qualification.
+The public [v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+has passed build and static artifact verification, not those runtime or servicing
+checks. See [Qualification](QUALIFICATION.md#public-release-publication).
 
 Ordinary startup has no Windows Installer service dependency. There is no
 Session 0 service, automatic updater, hardware-direct interface, vendor

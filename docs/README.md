@@ -14,13 +14,13 @@ using the bridge, not building it.
 | Fix a connection problem, missed shot or failed installation | [FAQ](FAQ.md) |
 | Report a bug or contribute | [Contributing](../contributors.md) |
 
-**Public source; no public installer release yet.** An earlier private candidate
-passed hosted Windows installation, repair, one controlled upgrade, full-removal
-and uninstall/reinstall recovery checks. That does not qualify this public
-bootstrap or rebuilt binaries. Interactive setup, Windows sign-in and
-live Labs/game behavior for that candidate, including GSPro and game switching,
-still need testing. Neither a connected status nor automatic startup means the
-game is ready.
+**[v0.1.0 is available](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0),
+but is not yet qualified for live play.** Choose the installer ZIP and follow the
+[installation guide](INSTALL.md). Its automated build and file checks do not
+qualify interactive setup, Windows sign-in or live Labs/game behavior, including
+GSPro and game switching. Earlier private installer and equipment observations
+used different builds. Neither a connected status nor automatic startup means
+the game is ready.
 
 Looking after the code? The [technical index](technical/README.md) covers the
 implementation, builds, tests and clearly labeled historical evidence.

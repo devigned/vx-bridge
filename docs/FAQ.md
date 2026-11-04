@@ -4,15 +4,17 @@
 
 ## Where is the installer?
 
-**No public installer or GitHub release is published yet.** Approved pilot
-testers should get the reviewed **installer ZIP** from the pilot organizer,
-not the application ZIP or MSI alone. Use **Extract All**, keep matching
-**`setup.exe` and `bridge.msi` in the extracted folder**, and open Setup.
+**[Download the public v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip)**,
+not the application ZIP or MSI alone. Use **Extract All**, keep all nine files
+together, including matching **`setup.exe` and `bridge.msi`**, and open Setup from
+the extracted folder, not inside the ZIP.
 
-The [Releases page](https://github.com/devigned/vx-bridge/releases)
-requires private-repository access today. A missing asset isn't a reason to
-download a similarly named executable elsewhere. An application-only development
-ZIP, source archive or **BUILD ONLY** artifact is not an approved installer.
+The [v0.1.0 release page](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+is public. These binaries passed automated build and static file checks, not
+live-equipment or installer-lifecycle qualification. They are not publisher-signed
+(Authenticode); a signed Git tag does not sign Windows programs. If Windows
+blocks Setup, stop and report the warning rather than bypassing it.
+An application-only ZIP, source archive or **BUILD ONLY** artifact is not the installer.
 See [exact filename patterns and which files to use](INSTALL.md#choose-the-right-files).
 
 ## ProTee Labs won't connect
@@ -63,7 +65,7 @@ recovery before swinging. **Standby** deliberately sends to neither game.
 
 ## Can I change games without disconnecting Labs?
 
-That is the intended pilot workflow: stop swinging, finish the visible result,
+That is the intended workflow: stop swinging, finish the visible result,
 choose the other game and wait for switching to finish. VX Bridge keeps Labs
 connected while the current shot response and pending replies finish or time
 out. New shots during switching are discarded, not saved for later.
@@ -119,7 +121,7 @@ doesn't replace the running host; a duplicate notice leaves it alone.
 
 Don't restart Explorer during an attached session just to try to restore an
 icon. If the menu remains inaccessible, the separate `vxbridge.exe` control
-tool can check status or request normal guarded Quit. Ask the pilot organizer
+tool can check status or request normal guarded Quit. Ask a project maintainer
 for help or use the [control reference](technical/DESKTOP.md).
 Don't launch an extra `GSPconnect.exe` to perform a control command.
 
@@ -136,7 +138,7 @@ the bridge. Windows' automatic rollback is enabled, but a failed operation does
 not guarantee that the previous version returned.
 
 Keep the bridge stopped. If Repair cannot complete, use **complete Uninstall,
-then a fresh Install**. If multiple versions remain, get the pilot organizer's
+then a fresh Install**. If multiple versions remain, get a project maintainer's
 recorded-version recovery instructions: remove the original recorded old
 version, fully uninstall the current version, confirm complete removal, then
 install fresh. Removing only one version is not completed recovery.
@@ -230,8 +232,9 @@ core and source; it is not a promise to upgrade arbitrary older builds.
 
 Start with normal Labs Disconnect and Quit the old copy. Preserve its files and
 startup registration until you have separately approved migration instructions.
-There is no published installer or verified portable-migration procedure yet;
-don't treat this scope decision as permission to install or delete an old copy.
+There is no verified portable-migration procedure; the published v0.1.0 installer
+does not change that. Don't treat publication as permission to adopt or delete
+an old copy.
 
 ## Does uninstall erase my game choice or all installer files?
 

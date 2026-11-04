@@ -12,9 +12,9 @@ versions involved. Include the visible tray error and selected game when relevan
 
 Check the [FAQ](docs/FAQ.md) and
 [existing issues](https://github.com/devigned/vx-bridge/issues)
-before opening a report. This is the public source repository; there is no
-published playing release yet. Please don't attach raw captures, real shot data,
-device identifiers, account details or full vendor logs.
+before opening a report. The public [v0.1.0 release](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+has not been qualified for live play. Please don't attach raw captures, real shot
+data, device identifiers, account details or full vendor logs.
 
 For code changes, choose a small issue or discuss the intended behavior first.
 Changes to delivery, game readiness, shutdown or installation need particular

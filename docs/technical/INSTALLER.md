@@ -15,7 +15,8 @@ repair, upgrade, and full Uninstall passed a recorded same-source,
 same-native-core hosted lifecycle for an earlier private candidate. That does
 not qualify this public bootstrap or rebuilt binaries. Interactive/client-PC operation, actual
 sign-in, Apps UI, Start now, and attached-Labs maintenance remain unqualified.
-No public installer or release is available. See
+The public [v0.1.0 installer](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+is available, but publication adds no lifecycle or client-PC qualification. See
 [Qualification](QUALIFICATION.md#installer-observations) for the exact result.
 
 ## Managed-copy admission
