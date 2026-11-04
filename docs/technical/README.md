@@ -40,12 +40,15 @@ separates those checks from observed Windows and equipment behavior.
 
 ## Status and scope
 
-An earlier private installer candidate passed a recorded same-source,
-same-native-core lifecycle on a disposable hosted Windows machine, including
-explicit recovery after an induced failure. That does not qualify the public
-bootstrap or a rebuilt artifact, and is not client-PC, interactive
-installer, sign-in, attached-Labs, or cross-game qualification. No public
-installer, repository tag, or GitHub release is published.
+The public [v0.1.0 release](../releases/v0.1.0.md) passed build and static artifact
+checks. Interactive installation, Windows sign-in, client-PC servicing and live
+Labs/game behavior remain unqualified for these binaries.
+
+An earlier private installer candidate passed a same-source, same-native-core
+lifecycle on a disposable Windows host, including recovery after an induced
+failure. That result does not qualify v0.1.0 or a rebuilt artifact.
+[Qualification](QUALIFICATION.md) separates the publication checks from earlier
+installer and equipment observations.
 
 Ordinary startup has no Windows Installer service dependency. There is no
 Session 0 service, automatic updater, hardware-direct interface, vendor

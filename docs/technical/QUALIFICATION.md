@@ -10,16 +10,37 @@ to its exact source, artifact, version, scenario, and observation method.
 Passing CI does not turn an unsigned development package into a release or
 qualify later binaries on a golf PC.
 
-The current source implements remembered IT/GSPro OpenAPI/Standby selection
-and recovery-first-v2 installation. It has no public installer, repository tag,
-or GitHub release. There is no official vendor endorsement or live GSPro/
-cross-game qualification. [Testing](TESTING.md) describes software coverage;
-the [research boundary](research/README.md) explains what is retained publicly.
-This repository starts from a source-only bootstrap without the earlier private
-history, run artifacts or investigation ledgers. The observations below concern
-older, separately identified instruments and candidates, not this bootstrap
-commit or binaries rebuilt from it. Original private records remain unchanged;
-no old hash, run or issue is relabeled as belonging to this repository.
+The current source implements remembered Infinite Tees/GSPro OpenAPI/Standby
+selection and recovery-first-v2 installation. The public v0.1.0 release has
+build and publication evidence, not live GSPro or cross-game qualification.
+There is no vendor endorsement. [Testing](TESTING.md) describes software
+coverage; the [research boundary](research/README.md) defines the public record.
+
+The repository began with a source-only bootstrap. Earlier private history,
+run artifacts and investigation ledgers were not imported. The historical
+installer and bridge observations below concern older instruments and
+candidates, not v0.1.0 or rebuilt binaries. The original records are unchanged;
+no earlier hash, run or issue is attributed to this repository.
+
+## Public release publication
+
+[v0.1.0](../releases/v0.1.0.md) targets source commit
+`5401cf26d19238b04ba3dbb8ecfa60442616ca79`. The annotated tag uses the owner's
+existing signing identity. Its signature was verified locally and by GitHub. The
+[tag-triggered release run](https://github.com/devigned/vx-bridge/actions/runs/41832770003)
+completed build, static package checks and publication.
+
+The application ZIP, installer ZIP, matching MSI and three SHA-256 files were
+downloaded and checked. All six matched the run's immutable artifact bytes and
+GitHub asset digests. The application manifest identified the tagged source
+and version. The installer ZIP contained nine flat entries; its `bridge.msi`
+was identical to the separate MSI.
+
+No product executable or installer was run. These checks establish publication
+and file integrity, not interactive installation, Windows sign-in, installer
+servicing or live Labs/game compatibility. The Windows programs and installer
+are not Authenticode-signed. Signed source commits and tags do not sign those
+files.
 
 ## Installer observations
 
@@ -123,8 +144,8 @@ framing/fields/units, receipts, putting/handedness, and bidirectional switching.
 
 Long sessions, partial/uncertain live in-flight recovery, all source-reconnect
 modes, sleep/resume, broad/dynamic DPI, attached-source Explorer restoration,
-general installer interruptions, signing, and actual tag-release publication
-also remain outside completed qualification.
+general installer interruptions and Authenticode signing also remain outside
+completed qualification. The publication check above does not close these gaps.
 
 New real-equipment trials require separate owner approval for an exact
 artifact, scope, risks, and cleanup. Record goal attainment, actual departure,

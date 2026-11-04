@@ -10,13 +10,13 @@ local admission checks; Windows Installer is involved only in explicit
 installation and maintenance, never in ordinary direct, shortcut, or sign-in
 startup.
 
-The selected contract is **recovery-first-v2**. Conventional MSI install,
-repair, upgrade, and full Uninstall passed a recorded same-source,
-same-native-core hosted lifecycle for an earlier private candidate. That does
-not qualify this public bootstrap or rebuilt binaries. Interactive/client-PC operation, actual
-sign-in, Apps UI, Start now, and attached-Labs maintenance remain unqualified.
-No public installer or release is available. See
-[Qualification](QUALIFICATION.md#installer-observations) for the exact result.
+The selected contract is **recovery-first-v2**. An earlier private candidate
+passed conventional MSI install, repair, upgrade and full Uninstall checks on
+a disposable host with one recorded source/native-core pair. That result does not
+qualify the public [v0.1.0 installer](../releases/v0.1.0.md) or rebuilt binaries.
+Interactive/client-PC operation, actual sign-in, Apps UI, Start bridge and
+attached-Labs maintenance remain unqualified. See
+[Qualification](QUALIFICATION.md#installer-observations) for the recorded scope.
 
 ## Managed-copy admission
 

@@ -3,56 +3,44 @@
 [User guides](README.md) / Installation
 
 VX Bridge connects ProTee Labs to your choice of Infinite Tees or GSPro OpenAPI.
-Follow these steps only for an approved pilot build.
+This guide covers the public [v0.1.0 release](releases/v0.1.0.md).
+Read [Limits](#limits) before installing.
 
 ## Before you start
 
-You need **Windows x64**, a working **activated ProTee VX and ProTee Labs**, and
-a **licensed Infinite Tees or GSPro installation on the same PC**. Keep your
-existing licenses and activation in place. VX Bridge does not supply a game,
-replace Labs or unlock a vendor feature.
+Use Windows x64, an activated ProTee VX with ProTee Labs already working, and a
+licensed Infinite Tees or GSPro installation on the same PC. VX Bridge does not
+supply a game, replace Labs or change licenses and activation.
 
-For GSPro, use its public **OpenAPI / APIv1 Connect** application, without
-running the competing native VX receiver. Both the game and OpenAPI Connect
-must be open when you play. The bridge itself needs no separate .NET or browser
-runtime.
+For GSPro, run both the game and its public **OpenAPI / APIv1 Connect**
+application. Do not run the native VX receiver at the same time.
+The bridge needs no separate .NET or browser runtime.
 
 ## Choose the right files
 
-**No public installer or GitHub release is published yet.** Approved pilot
-testers should get the reviewed installer files and compatibility notes from the
-pilot organizer. The public
-[Releases page](https://github.com/devigned/vx-bridge/releases)
-has no published installer or public version to recommend. Source availability
-does not make a development build a qualified playing release.
-
-For an approved tagged build, **choose the installer ZIP**. The tag-delivery
-contract uses these filenames; this does not mean a release is available now.
-`vX.Y.Z` is the version and `<40sha>` identifies the source commit.
+[Download the v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).
+The filename is
+`vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip`.
+Use this ZIP, not the application ZIP or MSI alone. The
+[release page](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
+contains these file types. In the patterns below, `vX.Y.Z` is the version and
+`<40sha>` identifies the source commit.
 
 | Files | What they are for |
 |---|---|
-| `vx-bridge-installer-windows-amd64-vX.Y.Z-<40sha>.zip` | **Recommended install choice:** extract it and run `setup.exe` with matching `bridge.msi` beside it. |
+| `vx-bridge-installer-windows-amd64-vX.Y.Z-<40sha>.zip` | Normal installation. Extract it and run `setup.exe` with matching `bridge.msi` beside it. |
 | `vx-bridge-windows-amd64-vX.Y.Z-<40sha>.zip` | Application-only package for separately approved manual/development use. Its six files do not include Setup/MSI. |
 | `vx-bridge-windows-amd64-vX.Y.Z-<40sha>.msi` | Windows Installer package, **not a standalone installer**. It still requires matching Setup; choose the installer ZIP instead. |
 | Source checkout or source archive | Contributing to the project, not a ready-to-run Windows app. |
 
 Each ZIP/MSI has a separate checksum file named `<filename>.sha256`.
 
-**Do not install by double-clicking `bridge.msi`.** It requires the matching
-native Setup program and refuses an unowned install. Do not mix files from
-different builds or treat an Actions artifact marked **BUILD ONLY** as approval
-to install it.
+The installer ZIP contains nine files in one folder. Keep them together.
+`setup.exe` and `bridge.msi` must be a matching pair. Do not mix builds or use an
+Actions artifact marked **BUILD ONLY** as an approved installer.
 
-Right-click the installer ZIP, choose **Extract All**, and open the extracted
-folder before running Setup. Its nine files have no subfolders. Keep them
-together: `setup.exe`, `bridge.msi`, the information files `setup-input.json` and
-`msi-inspection.json`, the notices/licenses `INSTALLER-NOTICE.txt`,
-`MINGW-COPYRIGHT.txt`, `LICENSE` and `THIRD_PARTY_NOTICES.txt`, and `SHA256SUMS`.
-
-Keep the download's separate checksum alongside the archive. There is no
-signed-publisher claim today: a checksum checks file contents, not who published
-them. Don't disable Windows security protections to run an unverified file.
+The separate `.sha256` files are optional integrity checks, not installers.
+A checksum checks file contents, not who published them.
 
 Untagged developer application ZIPs use
 `vx-bridge-windows-amd64-<revision>.zip`. See
@@ -61,46 +49,41 @@ not these setup steps, for development packages.
 
 ## Install
 
-1. If another receiver is running, use **Game Options > Disconnect in ProTee
-   Labs**, then close that receiver through its own controls. For an existing
-   VX Bridge, choose **Quit** after disconnecting Labs. Never run two receivers,
-   force-close an attached one or overwrite the vendor's `GSPconnect.exe`.
-2. Open the approved **`setup.exe`** normally as the Windows user who will use
-   the bridge, **not as administrator**. Choose **Install** for a fresh install.
-3. Leave **Auto-launch on Windows Startup** off unless you want the bridge to
-   open when you sign in. Its helper says: **Starts when you sign in to Windows.**
-   Fresh installs default off; maintenance preserves an existing verified
-   preference unless you change it.
-4. Wait for Setup to report success. At **Start the bridge now?**, choose
+1. In ProTee Labs, select **Game Options > Disconnect**. Close any existing
+   receiver through its own controls. For VX Bridge, select **Quit** after Labs
+   disconnects. Do not run two receivers or overwrite the vendor's `GSPconnect.exe`.
+2. Right-click the installer ZIP and select **Extract All**. Open the extracted
+   folder. Do not run Setup from inside the ZIP.
+3. Open `setup.exe` as the Windows user who will use the bridge, not as
+   administrator. Select **Install** for a fresh install. Do not double-click
+   `bridge.msi`.
+4. Leave **Auto-launch on Windows Startup** off unless the bridge should open
+   when you sign in. Its helper says **Starts when you sign in to Windows.**
+   It is off on a fresh install; maintenance preserves a verified preference
+   unless you change it.
+5. Wait for Setup to report success. At **Start the bridge now?**, select
    **Start bridge** to open it once, or **Not now** to open **VX Bridge** from the
    Windows Start menu later.
 
 Start bridge and auto-launch are independent. Neither opens Labs or the game,
-connects Labs, or changes your saved game choice. If the one-time launch fails
-after installation succeeded, resolve the reported runtime conflict and open
-the installed **VX Bridge** shortcut; don't reinstall just to retry launching.
+connects Labs or changes the saved game choice. If installation succeeds but
+the one-time launch fails, resolve the reported conflict and open the installed
+**VX Bridge** shortcut. Do not reinstall merely to retry a launch.
 
-**Pilot status:** an earlier private installer candidate passed hosted Windows
-installation, damaged-file repair, one controlled version-to-version upgrade,
-full uninstall and explicit uninstall/reinstall recovery checks as a standard
-user. This does not qualify the public bootstrap or rebuilt binaries, or verify
-interactive setup, the Start bridge prompt, actual
-Windows sign-in or live Labs/game use. GSPro and game switching still need live
-testing for this candidate. The
-[qualification summary](technical/QUALIFICATION.md) records the bounded prior
-observations and limits.
+If Windows blocks Setup, stop and [report the warning](https://github.com/devigned/vx-bridge/issues).
+Do not disable security protections or bypass the warning.
 
 ## Make the first connection
 
-1. Open **VX Bridge** on your signed-in Windows desktop. Find its icon near the
-   clock; it may be in the hidden-icons menu.
-2. Open Infinite Tees or GSPro and enter a playable practice scene. For GSPro,
-   also open its **OpenAPI / APIv1 Connect** application, not the native VX receiver.
+1. Open Infinite Tees or GSPro and enter a playable practice scene. For GSPro,
+   also open **OpenAPI / APIv1 Connect**, not the native VX receiver.
+2. Open **VX Bridge** from Start if it is not running. Find its icon near the
+   clock; check the hidden-icons arrow if necessary.
 3. Right-click the bridge icon and select **Use Infinite Tees** or
    **Use GSPro OpenAPI**. **Standby (discard shots)** sends shots to neither game.
-   Your selection is remembered; opening another game won't select it for you.
-4. Use the normal connection action in **ProTee Labs** if needed. Opening the
-   bridge does not guarantee that Labs connects automatically.
+   The bridge remembers the selection. Opening a game does not select it.
+4. Use ProTee Labs' normal Connect action if needed. The bridge does not open
+   Labs or the game, or connect Labs for you.
 5. In the bridge menu, check that **ProTee Labs** is connected and your chosen
    game says **Connected (transport only)**. Check the game itself before swinging:
    the bridge cannot tell whether it is ready for the next shot.
@@ -114,6 +97,17 @@ To change games, stop swinging and let the visible result finish first. Then
 choose the other game, wait for switching to finish and check it before playing.
 Shots missed during switching, an outage or Standby are not saved or replayed.
 See [everyday use](USAGE.md#choose-a-destination).
+
+## Limits
+
+v0.1.0 passed automated build and static file checks. Interactive installation,
+Windows sign-in, installer servicing and live Labs/game use, including GSPro
+and game switching, remain unqualified for these binaries. Earlier installer
+and equipment observations used different builds; see
+[qualification](technical/QUALIFICATION.md).
+
+The Windows programs and installer are not publisher-signed (Authenticode).
+Signed Git commits and tags do not sign those files.
 
 ## Maintenance and Repair required
 
@@ -137,8 +131,8 @@ Setup verifies a consistent installation. Repair can restore damaged files, but
 **may not resolve a failed upgrade with multiple registered versions**.
 
 If Repair cannot complete, use **complete Uninstall followed by a fresh Install**.
-If Windows lists more than one interrupted VX Bridge version, ask the pilot
-organizer for the recorded-version recovery instructions. That path removes the
+If Windows lists more than one interrupted VX Bridge version, ask a project
+maintainer for the recorded-version recovery instructions. That path removes the
 original recorded old version, fully uninstalls the current version, confirms
 complete removal, then installs fresh. Removing just one version is not completed
 recovery or permission to start the remaining bridge.
