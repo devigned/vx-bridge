@@ -58,19 +58,43 @@ func buildIdentity() string {
 	return identity
 }
 
+func diagnosticBuild() diagnostics.Build {
+	return diagnostics.Build{Version: version, Release: releaseVersion, Revision: buildRevision,
+		Go: runtime.Version(), OS: runtime.GOOS, Architecture: runtime.GOARCH}
+}
+
 func run(args []string, out, stderr io.Writer) (exit int) {
 	flags := flag.NewFlagSet("vxbridge", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	status := flags.Bool("status", false, "same-user local host status (run as vxbridge.exe)")
 	quit := flags.Bool("quit", false, "request guarded Quit; never forces attached Labs closed")
 	showVersion := flags.Bool("version", false, "show build identity without starting a host")
+	reportPath := flags.String("diagnostics", "", "save a local diagnostic ZIP to a new absolute file; no host start or upload")
+	reportDialog := flags.Bool("diagnostics-dialog", false, "native Save diagnostic report dialog; no host start or upload")
 	desktopMode := flags.Bool("desktop", defaultDesktop == "true", "native tray and local logs; no console required")
 	port := flags.Int("target-port", 999, "Infinite Tees IPv4 loopback port (host mode only)")
 	if err := flags.Parse(args); err != nil || flags.NArg() != 0 {
 		return 2
 	}
-	if *port < 1 || *port > 65535 || *port == 12321 || (*status && *quit) ||
-		(*showVersion && (*status || *quit)) || ((*status || *quit) && *port != 999) {
+	modes := 0
+	for _, selected := range []bool{*status, *quit, *showVersion, *reportPath != "", *reportDialog} {
+		if selected {
+			modes++
+		}
+	}
+	explicitHostOption := false
+	emptyDiagnosticMode := false
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "desktop" || f.Name == "target-port" {
+			explicitHostOption = true
+		}
+		if (f.Name == "diagnostics" && *reportPath == "") || (f.Name == "diagnostics-dialog" && !*reportDialog) {
+			emptyDiagnosticMode = true
+		}
+	})
+	if *port < 1 || *port > 65535 || *port == 12321 || modes > 1 || emptyDiagnosticMode ||
+		(((*reportPath != "" || *reportDialog) && explicitHostOption) ||
+			((*status || *quit) && *port != 999)) {
 		fmt.Fprintln(stderr, "vxbridge: invalid or conflicting options; target port must be 1..65535 excluding 12321.")
 		return 2
 	}
@@ -90,6 +114,35 @@ func run(args []string, out, stderr io.Writer) (exit int) {
 		return 1
 	}
 	compatibilityImage := strings.EqualFold(filepath.Base(image), "GSPconnect.exe")
+	if *reportPath != "" || *reportDialog {
+		if compatibilityImage {
+			fmt.Fprintln(stderr, "vxbridge: use distinct vxbridge.exe for diagnostics; no second GSPconnect identity.")
+			return 2
+		}
+		if *reportDialog {
+			_, err := desktop.ReportDialog(diagnosticBuild())
+			if err != nil {
+				fmt.Fprintln(stderr, "vxbridge: diagnostic save failed; nothing was sent. Report the bug without a ZIP if needed.")
+				return 1
+			}
+			return 0
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), diagnostics.CollectionTimeout+2*time.Second)
+		defer cancel()
+		report, err := diagnostics.NewCollector(diagnosticBuild()).Collect(ctx)
+		if err == nil {
+			err = diagnostics.Save(ctx, *reportPath, report)
+		}
+		if err != nil {
+			fmt.Fprintln(stderr, "vxbridge: diagnostic export failed; choose a new absolute local file. Nothing was sent; an incomplete file may remain.")
+			return 1
+		}
+		if _, err := fmt.Fprintf(out, "Diagnostic report saved locally (partial=%t). Nothing was sent; review the ZIP before attaching it.\n", report.Manifest.Partial); err != nil {
+			fmt.Fprintln(stderr, "vxbridge: report saved, but the completion message could not be printed.")
+			return 1
+		}
+		return 0
+	}
 	if *status || *quit {
 		if compatibilityImage {
 			fmt.Fprintln(stderr, "vxbridge: use distinct vxbridge.exe for control; no second GSPconnect identity.")
@@ -258,7 +311,7 @@ func host(listener net.Listener, pipe net.Listener, target string, interrupts <-
 		} else {
 			directory = ""
 		}
-		logs = diagnostics.New(directory, diagnostics.Build{Version: version, Revision: buildRevision, Go: runtime.Version()})
+		logs = diagnostics.New(directory, diagnosticBuild())
 		var manager *startup.Manager
 		backend, startupError := startup.CurrentUser()
 		if startupError == nil {
@@ -268,6 +321,7 @@ func host(listener net.Listener, pipe net.Listener, target string, interrupts <-
 			logs.WriteEvent(bridge.Event{At: time.Now().UTC(), Reason: "startup_unavailable_use_status"})
 		}
 		app = desktop.New(controller, logs, manager, directory, preferences)
+		app.Reporting(diagnosticBuild())
 		tray = app.Tray()
 		defer func() {
 			flush, stop := context.WithTimeout(context.Background(), 500*time.Millisecond)
@@ -297,10 +351,19 @@ func host(listener net.Listener, pipe net.Listener, target string, interrupts <-
 		}
 		return 1
 	}
-	var decorate func(*bridge.Snapshot)
+	decorate := func(state *bridge.Snapshot) {
+		state.Release, state.Revision = releaseVersion, buildRevision
+		state.GoVersion, state.Architecture = runtime.Version(), runtime.GOARCH
+		state.TargetEndpoint = state.Destination.Endpoint(target)
+		if state.Destination == destination.Standby {
+			state.TargetEndpoint = "none"
+		}
+		if app != nil {
+			app.Decorate(state)
+		}
+	}
 	if app != nil {
 		app.Start()
-		decorate = app.Decorate
 	}
 	controlDone := make(chan error, 1)
 	go func() {

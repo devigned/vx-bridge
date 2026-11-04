@@ -32,6 +32,10 @@ const (
 	SelectGSPro
 	// SelectStandby requests no target connection and saves that choice.
 	SelectStandby
+	// SaveReport opens a native save dialog and collects a local diagnostic ZIP.
+	SaveReport
+	// ReportBug opens the empty GitHub bug form, never uploading report data.
+	ReportBug
 )
 
 // Item describes one tray menu row. Status-only rows are Disabled; separators
@@ -193,6 +197,8 @@ func menu(snapshot bridge.Snapshot, available bool) View {
 		items = append(items, statusItem("Windows startup: unavailable; registration not changed"))
 	}
 	items = append(items, Item{Separator: true},
+		Item{Text: "Save &diagnostic report...", Action: SaveReport},
+		Item{Text: "&Report a bug", Action: ReportBug},
 		Item{Text: "Open &Logs", Action: OpenLogs},
 		Item{Text: "Auto-launch on &Windows Startup", Action: ToggleStartup, Checked: registered,
 			Disabled: snapshot.Startup != "startup_off" && !registered},
@@ -285,6 +291,20 @@ func actionText(code string) string {
 	switch code {
 	case "opening_logs":
 		return "Opening the local log folder..."
+	case "diagnostic_report_pending":
+		return "Saving a local diagnostic report; nothing is sent"
+	case "diagnostic_report_saved":
+		return "Diagnostic report saved locally; nothing was sent"
+	case "diagnostic_report_partial":
+		return "Partial diagnostic report saved; review summary.txt; nothing was sent"
+	case "diagnostic_report_cancelled":
+		return "Diagnostic report cancelled; nothing was sent"
+	case "diagnostic_report_failed":
+		return "Cannot save diagnostic report; report the bug without a ZIP"
+	case "report_bug_pending":
+		return "Opening the bug form; attach a reviewed report only if you choose"
+	case "report_bug_failed":
+		return "Cannot open the bug form; use the reporting link in the user guide"
 	case "open_logs_failed":
 		return "Cannot open local logs; inspect vxbridge --status"
 	case "startup_change_pending":

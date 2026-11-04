@@ -34,6 +34,8 @@ BOOL setup_payload(VX_CONTEXT *c, const VX_RECEIPT *r, BOOL allow_missing);
 BOOL setup_pin_root(VX_CONTEXT *c, BOOL *created, unsigned int *slot);
 BOOL setup_root_pinned(VX_CONTEXT *c);
 BOOL setup_pin_directory(VX_CONTEXT *c, const WCHAR *path);
+BOOL setup_shortcut_owned(VX_CONTEXT *c, const WCHAR *name, const WCHAR *path);
+BOOL setup_support_shortcut(VX_CONTEXT *c, BOOL required);
 BOOL setup_remove_root(VX_CONTEXT *c, unsigned int *slot);
 BOOL setup_root_snapshot(VX_CONTEXT *c, unsigned int slot, BY_HANDLE_FILE_INFORMATION *identity);
 BOOL setup_release_root(VX_CONTEXT *c, unsigned int *slot, const BY_HANDLE_FILE_INFORMATION *identity);

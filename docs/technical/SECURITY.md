@@ -59,8 +59,16 @@ identity. Unknown reasons become stable fault hashes.
 
 Records exclude measurements, DeviceID, real shot IDs, player values, raw
 objects, window handles, and private-path dumps. Metadata comes from the
-application build, not arbitrary payload fields. There is no raw capture or
-export menu.
+application build, not arbitrary payload fields. The separate structured
+`release` field is the actual release version, not the prototype/protocol label.
+
+The explicit diagnostic exporter saves one local ZIP with allowlisted,
+reserialized records. It never uploads or exports raw captures/vendor/MSI logs.
+Untrusted metadata is validated again; private strings and local shot aliases
+are not copied. Reporter, running host and installed receipt identities remain
+separate. Missing/corrupt sources produce explicit partial results. The
+[diagnostic contract](DIAGNOSTICS.md) defines bounds, exact owned-input checks,
+exclusive local output and the manual review/attachment step.
 
 Unexpected file types, oversized slots, permission/lock errors, short writes,
 disk-full, rotation, and close failures stop persistence explicitly.

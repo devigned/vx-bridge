@@ -38,6 +38,10 @@ type Runtime struct {
 	directory   string
 	openLogs    func(string) error
 	actions     chan Action
+	support     chan Action
+	supportBusy atomic.Bool
+	saveReport  func() (string, error)
+	reportBug   func() error
 	quit        atomic.Bool
 	stopping    atomic.Bool
 	mu          sync.Mutex
@@ -60,17 +64,24 @@ type Runtime struct {
 func New(controller *bridge.Controller, logs *diagnostics.Logger, manager *startup.Manager, directory string, preferences *destination.Preferences) *Runtime {
 	r := &Runtime{controller: controller, logs: logs, directory: directory,
 		openLogs: openLogDirectory, actions: make(chan Action, 1),
+		support: make(chan Action, 1), reportBug: openBugForm,
 		ui: "tray_starting", launch: "startup_unavailable", done: make(chan struct{})}
 	if preferences != nil {
 		r.preferences = preferences
 	}
+
 	if manager != nil {
 		r.startup = manager
 	}
 	return r
 }
 
-// Start launches status/Quit polling and a separate serialized action worker.
+// Reporting configures the shared exporter before Start. It performs no I/O.
+func (r *Runtime) Reporting(build diagnostics.Build) {
+	r.saveReport = func() (string, error) { return ReportDialog(build) }
+}
+
+// Start launches status/Quit polling and separate action/support workers.
 // Call it once after the native identity is verified and the controller can be
 // serviced. A blocked shell, registration, or preference operation does not block
 // the polling worker. Start does not create the native tray.
@@ -78,7 +89,18 @@ func (r *Runtime) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r.cancel = cancel
 	var workers sync.WaitGroup
-	workers.Add(2)
+	workers.Add(3)
+	go func() {
+		defer workers.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case action := <-r.support:
+				r.runSupport(action)
+			}
+		}
+	}()
 	go func() {
 		defer workers.Done()
 		ticker := time.NewTicker(250 * time.Millisecond)
@@ -163,6 +185,37 @@ func (r *Runtime) readStartup() {
 	r.mu.Unlock()
 }
 
+func (r *Runtime) runSupport(action Action) {
+	defer r.supportBusy.Store(false)
+	if action == ReportBug {
+		r.setAction("report_bug_pending")
+		if r.reportBug() != nil {
+			r.setAction("report_bug_failed")
+		} else {
+			r.setAction("")
+		}
+		return
+	}
+	r.setAction("diagnostic_report_pending")
+	if r.saveReport == nil {
+		r.setAction("diagnostic_report_failed")
+		return
+	}
+	result, err := r.saveReport()
+	switch {
+	case err != nil:
+		r.setAction("diagnostic_report_failed")
+	case result == "cancelled":
+		r.setAction("diagnostic_report_cancelled")
+	case result == "saved_partial":
+		r.setAction("diagnostic_report_partial")
+	case result == "saved":
+		r.setAction("diagnostic_report_saved")
+	default:
+		r.setAction("diagnostic_report_failed")
+	}
+}
+
 // Request queues a supported tray action without waiting for desktop I/O.
 // Quit sets a separate atomic request for the poller; repeated requests may
 // coalesce. Other actions use a one-entry queue and report busy when it is full.
@@ -171,6 +224,19 @@ func (r *Runtime) readStartup() {
 func (r *Runtime) Request(action Action) {
 	if action == Quit {
 		r.quit.Store(true)
+		return
+	}
+	if action == SaveReport || action == ReportBug {
+		if !r.supportBusy.CompareAndSwap(false, true) {
+			r.setAction("desktop_actions_busy")
+			return
+		}
+		select {
+		case r.support <- action:
+		default:
+			r.supportBusy.Store(false)
+			r.setAction("desktop_actions_busy")
+		}
 		return
 	}
 	if action == OpenLogs {

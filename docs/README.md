@@ -10,7 +10,8 @@ The bridge remembers the choice; only one game receives shots.
 | Choose a game, check status, find logs or quit safely | [Everyday use](USAGE.md) |
 | Fix a connection problem, missed shot or failed installation | [FAQ](FAQ.md) |
 | Read initial-release features, files and contributor credits | [v0.1.0 release notes](releases/v0.1.0.md) |
-| Report a bug or contribute | [Contributing](../contributors.md) |
+| Report a bug, save a local report or request a feature | [Reporting](REPORTING.md) |
+| Contribute a code or documentation change | [Contributing](../contributors.md) |
 
 [v0.1.0 is available](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0).
 It passed automated build and file checks, not interactive installation,

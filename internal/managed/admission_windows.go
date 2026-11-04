@@ -94,13 +94,17 @@ func pin(path string, directory bool, access, share, creation uint32) (windows.H
 }
 
 func pinDirectories(path string, a *admission) error {
+	return pinDirectoryChain(path, a, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE)
+}
+
+func pinDirectoryChain(path string, a *admission, share uint32) error {
 	var chain []string
 	for current := path; current != filepath.Dir(current); current = filepath.Dir(current) {
 		chain = append(chain, current)
 	}
 	for i := len(chain) - 1; i >= 0; i-- {
 		handle, err := pin(chain[i], true, windows.FILE_READ_ATTRIBUTES,
-			windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE, windows.OPEN_EXISTING)
+			share, windows.OPEN_EXISTING)
 		if err != nil {
 			return err
 		}

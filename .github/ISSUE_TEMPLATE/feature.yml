@@ -1,0 +1,32 @@
+name: Feature request
+description: Describe a task VX Bridge could make easier.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [existing requests](https://github.com/devigned/vx-bridge/issues) first. Tell us the task and desired outcome; you do not need to design the implementation.
+  - type: textarea
+    id: task
+    attributes:
+      label: What are you trying to do?
+      description: Describe the user task or problem, and who it affects. Keep private account, device, player, and license details out.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What outcome would help?
+      description: Explain what success would look like and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How do you handle this today? Write "none" if there is no workaround.
+  - type: textarea
+    id: approach
+    attributes:
+      label: Optional proposed approach
+      description: Suggestions, alternatives, or examples are welcome. A particular implementation is not required.

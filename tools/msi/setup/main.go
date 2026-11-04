@@ -535,6 +535,7 @@ func author(product, version, revision, owner string, payload map[string][]byte)
 <Directory Id="ProgramMenuFolder">
 <Component Id="Shortcut" Guid="` + guid("component/shortcut") + `" Win64="yes">
 <Shortcut Id="BridgeShortcut" Name="VX Bridge" Target="[INSTALLDIR]GSPconnect.exe" WorkingDirectory="INSTALLDIR" Advertise="no"/>
+<Shortcut Id="DiagnosticsShortcut" Name="VX Bridge Diagnostics" Target="[INSTALLDIR]vxbridge.exe" Arguments="--diagnostics-dialog" WorkingDirectory="INSTALLDIR" Advertise="no"/>
 <RegistryValue Root="HKCU" Key="Software\VxInfiniteTeesBridge\MSI" Name="Shortcut" Type="integer" Value="1" KeyPath="yes"/>
 </Component></Directory>
 </Directory>

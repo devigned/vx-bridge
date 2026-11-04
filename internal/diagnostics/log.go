@@ -62,6 +62,8 @@ platform_fault_channel_closed diagnostics_sink_failed diagnostics_sink_failed_us
 control_request_failed control_listener_failed quit_request_failed startup_unavailable_use_status
 opening_logs open_logs_failed startup_change_pending startup_change_failed desktop_actions_busy
 desktop_worker_cleanup_deadline desktop_status_unavailable
+diagnostic_report_pending diagnostic_report_saved diagnostic_report_partial
+diagnostic_report_cancelled diagnostic_report_failed report_bug_pending report_bug_failed
 destination_switch_requested_no_new_shots destination_switch_applied_new_shots_only destination_retired
 held_shot_destination_switch_no_ACK target_shot_profile_unsupported_no_ACK
 destination_change_already_pending destination_change_blocked_quit destination_change_blocked_source_fault
@@ -81,10 +83,15 @@ tray_and_notice_unavailable_use_control tray_menu_dismiss_failed_use_control
 type Build struct {
 	// Version is the bridge protocol/application version label.
 	Version string `json:"version"`
+	// Release is the actual release version, separate from the protocol label.
+	Release string `json:"release,omitempty"`
 	// Revision is the source revision stamped into the build.
 	Revision string `json:"revision"`
 	// Go is the Go toolchain identity used by the producer.
 	Go string `json:"go"`
+	// OS and Architecture identify the producer, not an installed copy.
+	OS           string `json:"os,omitempty"`
+	Architecture string `json:"architecture,omitempty"`
 }
 
 // record pairs Event, the sanitized local outcome, with Build, its producer.
@@ -184,16 +191,14 @@ func (l *Logger) fail(code string) {
 // A nil error means queued, not persisted. A full queue, known failure, or closed
 // logger returns an error and increments Health.Lost; failures remain visible.
 func (l *Logger) WriteEvent(ev bridge.Event) error {
-	if !fixedCodes[ev.Reason] && !socketCode.MatchString(ev.Reason) {
-		hash := sha256.Sum256([]byte(ev.Reason))
-		ev.Reason, ev.Alias = fmt.Sprintf("unrecognized_event_redacted_%x_use_status", hash[:4]), 0
-	}
+	ev = sanitizeEvent(ev)
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if len(l.recent) == 64 {
 		copy(l.recent, l.recent[1:])
 		l.recent = l.recent[:63]
 	}
+
 	l.recent = append(l.recent, ev)
 	if l.closed && l.failure == "" {
 		l.failure = "local_logs_closed_use_status"
@@ -210,6 +215,16 @@ func (l *Logger) WriteEvent(ev bridge.Event) error {
 		l.lost++
 		return errors.New(l.failure)
 	}
+}
+
+var redactedCode = regexp.MustCompile(`^unrecognized_event_redacted_[0-9a-f]{8}_use_status$`)
+
+func sanitizeEvent(ev bridge.Event) bridge.Event {
+	if !fixedCodes[ev.Reason] && !socketCode.MatchString(ev.Reason) && !redactedCode.MatchString(ev.Reason) {
+		hash := sha256.Sum256([]byte(ev.Reason))
+		ev.Reason, ev.Alias = fmt.Sprintf("unrecognized_event_redacted_%x_use_status", hash[:4]), 0
+	}
+	return ev
 }
 
 // Health returns cached worker state and the count of rejected events without

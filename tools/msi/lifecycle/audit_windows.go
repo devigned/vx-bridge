@@ -104,7 +104,8 @@ func capture(name, out string, u userContext, media []media) (s snapshot, result
 	s = snapshot{Name: name, UTC: time.Now().UTC().Format(time.RFC3339Nano), Context: u,
 		Files: map[string]fileState{}, Registry: map[string]registryState{}}
 	for _, root := range append([]string{u.Root, u.LocalData, u.Config,
-		filepath.Join(u.Programs, "VX Bridge.lnk"), filepath.Join(u.Programs, "VX Bridge Setup.lnk")}, foreignFiles(u)...) {
+		filepath.Join(u.Programs, "VX Bridge.lnk"), filepath.Join(u.Programs, "VX Bridge Setup.lnk"),
+		filepath.Join(u.Programs, "VX Bridge Diagnostics.lnk")}, foreignFiles(u)...) {
 		files, err := collectFiles(root)
 		if err != nil {
 			result = errors.Join(result, fmt.Errorf("inventory %s: %w", root, err))
@@ -206,12 +207,15 @@ func verifyInstalled(m media, u userContext, all []media) error {
 		return err
 	}
 	for name, target := range map[string]string{
-		"VX Bridge.lnk":       filepath.Join(u.Root, "GSPconnect.exe"),
-		"VX Bridge Setup.lnk": filepath.Join(u.State, "setup.exe"),
+		"VX Bridge.lnk":             filepath.Join(u.Root, "GSPconnect.exe"),
+		"VX Bridge Setup.lnk":       filepath.Join(u.State, "setup.exe"),
+		"VX Bridge Diagnostics.lnk": filepath.Join(u.Root, "vxbridge.exe"),
 	} {
 		arguments := ""
 		if name == "VX Bridge Setup.lnk" {
 			arguments = "/maintain"
+		} else if name == "VX Bridge Diagnostics.lnk" {
+			arguments = "--diagnostics-dialog"
 		}
 		if err := verifyShortcut(filepath.Join(u.Programs, name), target, arguments); err != nil {
 			return err
@@ -278,7 +282,8 @@ func verifyShortcut(path, target, arguments string) error {
 
 func verifyAbsent(u userContext, all []media) error {
 	for _, path := range []string{u.Root, u.LocalData, u.Config,
-		filepath.Join(u.Programs, "VX Bridge.lnk"), filepath.Join(u.Programs, "VX Bridge Setup.lnk")} {
+		filepath.Join(u.Programs, "VX Bridge.lnk"), filepath.Join(u.Programs, "VX Bridge Setup.lnk"),
+		filepath.Join(u.Programs, "VX Bridge Diagnostics.lnk")} {
 		if _, err := os.Lstat(path); !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("uninstall app-owned path remains or cannot be verified: %s: %v", path, err)
 		}

@@ -96,7 +96,8 @@ Connected transport still leaves game readiness unknown.
 `internal/identity` owns the exclusive bind and native window.
 `internal/control` owns bounded same-user status and Quit.
 `internal/desktop` owns the tray model, owner-thread dispatch, and action workers.
-`internal/diagnostics` owns bounded redacted logs; `internal/startup` owns
+`internal/diagnostics` owns bounded redacted logs and the shared read-only local
+ZIP exporter; `internal/startup` owns
 exact-copy, opt-in sign-in registration.
 
 `internal/managed` verifies the fixed managed-copy receipt, local Pending
@@ -104,6 +105,9 @@ denial, and six payload files, retaining a process-lifetime exclusion handle.
 It does not call MSI during ordinary startup. Explicit native Setup owns
 maintenance; it is not a permanent broker, service, or game selector.
 Control remains available even when managed host admission is refused.
+Diagnostic modes also run before admission, without starting a host or touching
+its lease. The tray and installed support shortcut share that exporter; no
+native duplicate collector or extra payload executable is installed.
 
 The shipped Go graph uses the standard library, pinned `golang.org/x/sys`,
 and `github.com/Microsoft/go-winio`. It is built with CGO disabled and requires

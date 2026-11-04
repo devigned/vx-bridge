@@ -204,12 +204,20 @@ hardlinks, and foreign Run/cache ownership refuse rather than truncate cleanup.
 
 Complete removal includes the six application files, passive Setup and MSI
 cache, maintenance logs/state, destination/settings and recognized partial
-preference files, the five bridge log slots, both owned shortcuts, owned Run
+preference files, the five bridge log slots, all three owned shortcuts, owned Run
 registration, receipt/Pending, and known product/component clients.
 Validated empty application directories and registry keys are removed too.
 The shared `LocalAppData\Programs` parent is not owned or removed.
 Original user downloads, independent exports/development archives, vendor/
 game files, and foreign state remain untouched.
+
+The nonadvertised shortcuts are **VX Bridge**, **VX Bridge Setup**, and
+**VX Bridge Diagnostics**. The support shortcut targets the existing
+`vxbridge.exe --diagnostics-dialog`; it adds no seventh payload file. Its
+exact target/arguments are part of shortcut ownership and uninstall inventory.
+Install/Repair/compatible-upgrade authoring and static MSI inspection require
+it, and full removal checks its absence. Reporting does not require successful
+host admission or invoke Windows Installer.
 
 Removal checks use callback-scoped handles. Setup retains relevant ancestor,
 source, owner, and host protections but hands off the app-root handle for

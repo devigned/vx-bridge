@@ -109,6 +109,11 @@ func TestVersionAndInvalidArgumentsDoNotStartHost(t *testing.T) {
 	for _, args := range [][]string{
 		{"--target-port=12321"}, {"--target-port=0"}, {"--target-port=65536"},
 		{"--status", "--quit"}, {"--unknown"}, {"unexpected"}, {"--version", "--quit"},
+		{"--diagnostics=report.zip", "--status"}, {"--diagnostics=report.zip", "--version"},
+		{"--diagnostics=report.zip", "--quit"}, {"--diagnostics=report.zip", "--diagnostics-dialog"},
+		{"--diagnostics-dialog", "--target-port=999"}, {"--diagnostics-dialog", "--desktop"},
+		{"--diagnostics=report.zip", "--desktop=false"},
+		{"--diagnostics="}, {"--diagnostics-dialog=false"},
 	} {
 		if code := run(args, io.Discard, io.Discard); code != 2 {
 			t.Fatalf("unsafe arguments accepted: %v", args)
@@ -127,6 +132,10 @@ func TestReleaseAndDevelopmentVersionIdentity(t *testing.T) {
 	for _, release := range []string{"development", "v1.0.1"} {
 		for _, desktop := range []string{"false", "true"} {
 			releaseVersion, buildRevision, defaultDesktop = release, strings.Repeat("a", 40), desktop
+			build := diagnosticBuild()
+			if build.Release != release || build.Revision != buildRevision || build.Version != version {
+				t.Fatal("structured diagnostics lost release/source identity", build)
+			}
 			var out bytes.Buffer
 			if code := run([]string{"--version"}, &out, io.Discard); code != 0 {
 				t.Fatal("version query failed")

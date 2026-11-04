@@ -32,6 +32,8 @@ admission, the self-contained native EXE, conventional MSI servicing, and the
 full-Uninstall contract.
 [Security and data ownership](SECURITY.md) defines local storage, trust, and
 license boundaries.
+[Diagnostic reports](DIAGNOSTICS.md) defines local ZIP collection, privacy,
+partial-source semantics and maintainer triage.
 
 Commands are collected in [Command reference](COMMANDS.md), not interleaved
 with the design explanation. [Build and release automation](AUTOMATION.md)

@@ -89,6 +89,7 @@ __declspec(dllexport) UINT __stdcall VxSetupAuthorize(MSIHANDLE h)
 		UINT code=closed?setup_remove_authorize(h):ERROR_INSTALL_FAILURE;
 		setup_diag_session_end(h,span,"MSI",code); return code;
 	}
+	if(!setup_support_shortcut(&c,FALSE)) goto done;
 	if(!setup_property(h,L"VX_SETUP_PIPE",pipe_name,ARRAYSIZE(pipe_name)) ||
 		wcsncmp(pipe_name,VX_SETUP_PIPE_PREFIX,wcslen(VX_SETUP_PIPE_PREFIX))) goto done;
 	pipe=CreateFileW(pipe_name,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);

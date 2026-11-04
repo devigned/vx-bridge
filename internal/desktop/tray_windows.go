@@ -342,7 +342,7 @@ func (t *tray) showMenu(anchor uintptr) (result error) {
 		return nil // Ordinary Escape/dismissal.
 	}
 	switch Action(command) {
-	case OpenLogs, ToggleStartup, Quit, SelectInfiniteTees, SelectGSPro, SelectStandby:
+	case OpenLogs, ToggleStartup, Quit, SelectInfiniteTees, SelectGSPro, SelectStandby, SaveReport, ReportBug:
 		t.runtime.Request(Action(command))
 	default:
 		return errors.New("tray_unknown_menu_command")
