@@ -70,7 +70,7 @@ foreach ($line in $records) {
         $sourceHashes[$path]=$true
     }
 }
-if ($sourceHashes.Count -ne 11) { throw 'Native source inventory differs.' }
+if ($sourceHashes.Count -ne 13) { throw 'Native source inventory differs.' }
 $workerInfo=Get-Content -Raw -LiteralPath (Join-Path $inputs 'worker-build-info.txt')
 $workerBytes=[IO.File]::ReadAllBytes((Join-Path $inputs 'lifecycle-worker.exe'))
 if ($workerInfo -notlike '*github.com/devigned/vx-bridge/tools/msi/lifecycle*' -or

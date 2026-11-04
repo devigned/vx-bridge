@@ -20,8 +20,8 @@ Portable tests, Linux race instrumentation, and native Windows fixtures are
 distinct checks. PR CI tests the merge checkout, not an asserted reviewed
 head. Ordinary artifacts use development identity; CI is not release
 promotion and does not run the product EXEs or operate a simulator.
-Its build-only jobs produce the application archive, matching native Setup
-inputs, and statically verified installer artifacts through shared commands.
+Its build-only jobs produce the private application archive, matching native
+Setup/bundle inputs, and statically verified installer artifacts through shared commands.
 
 The [version-tag workflow](../../.github/workflows/release.yml) builds an exact
 canonical tagged commit already in main, then publishes only that run's
@@ -91,7 +91,8 @@ equivalent Repair media. See
 
 ## Installer artifacts
 
-The installer ZIP contains nine flat entries:
+The public installer is a native self-contained EXE. Its bounded flat overlay
+contains ten entries in a fixed order:
 
 ```text
 setup.exe
@@ -103,29 +104,49 @@ MINGW-COPYRIGHT.txt
 LICENSE
 THIRD_PARTY_NOTICES.txt
 SHA256SUMS
+application.zip
 ```
 
 `setup.exe` and `bridge.msi` must be the matching authored pair.
 Metadata, inspection, compiler copyright, and license notices are retained
-with the actual bytes. The direct named MSI is identical to `bridge.msi`
-inside the bundle; it is not a separate standalone-install interface.
-Use verified Setup for installation/Repair and conventional registered-product
-Uninstall as described in [Installation](INSTALLER.md).
+with the actual bytes. `application.zip` is the authoritative original
+six-file application archive, included internally for independent verification,
+not a separate user download. `SHA256SUMS` covers the preceding eight installer
+files; the overlay footer binds the native stub, exact source revision and all
+ten entries by length and full SHA-256. No archive paths are interpreted.
+
+The outer stub is built before MSI authoring, separately from inner Setup.
+The MSI still binds the unchanged inner Setup hash. This avoids a circular
+EXE/MSI hash dependency without weakening owner, receipt or PackageCode checks.
+Static verification checks the native stub/source, all overlay bounds/hashes,
+authored MSI metadata and the embedded application through the authoritative
+distribution verifier. Publication needs no separately downloaded app ZIP.
+
+Use the public EXE for installation/Repair and conventional registered-product
+Uninstall as described in [Installation](INSTALLER.md#self-contained-media).
 
 For a canonical versioned build, filenames use the public repository name
 (persisted Windows compatibility identities are unchanged):
 
 ```text
-vx-bridge-windows-amd64-vX.Y.Z-<40sha>.zip
-vx-bridge-installer-windows-amd64-vX.Y.Z-<40sha>.zip
-vx-bridge-windows-amd64-vX.Y.Z-<40sha>.msi
+vx-bridge-installer-windows-amd64-vX.Y.Z.exe
+vx-bridge-installer-windows-amd64-vX.Y.Z.exe.sha256
 ```
 
-Each file has an appended `.sha256` companion. The public
-[v0.1.0 release](../releases/v0.1.0.md) follows these naming rules and contains
-the application ZIP, installer ZIP, matching MSI and three checksums.
-`package-installer` and `verify-installer` own bundle assembly/integrity;
-native compilation and WiX authoring remain separate stages.
+These are **exactly the two uploaded release assets**. The checksum contains
+one lowercase SHA-256, two spaces, that exact EXE basename and a newline.
+GitHub's automatic Source code ZIP/tar.gz remain available. No standalone MSI,
+application ZIP, installer ZIP, notice/metadata file or former checksum is
+uploaded. Source SHA identity remains inside verified metadata and artifact
+provenance, not in public filenames. Development EXEs use the exact source SHA
+in place of a version; they are not published by the tag workflow.
+
+Private application build inputs retain their version-plus-source names.
+`package-installer` emits only the EXE/checksum; `verify-installer` owns
+self-contained integrity checks. Native compilation and WiX authoring remain
+separate stages. The public [v0.1.0 release](../releases/v0.1.0.md) predates
+this format and retains its application ZIP, installer ZIP, MSI and three
+checksums unchanged.
 
 ## Artifact transport
 
@@ -175,6 +196,10 @@ publication job rechecks tag/source identity and main ancestry, downloads
 only that run's exact artifact, and validates its contents and hashes before
 creating a draft with verified-tag/exact-target semantics.
 Existing releases/assets are not reused or overwritten.
+The download directory must contain exactly the expected version-named EXE
+and checksum, both regular nonsymlink files. Any additional asset, SHA-bearing
+filename, wrong checksum basename or embedded source/version mismatch refuses
+before release creation.
 
 After upload and a further identity check, publication keeps
 `prerelease=false` and `latest=false`. A late failure can leave a draft;

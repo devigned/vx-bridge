@@ -18,20 +18,19 @@ VX receiver. VX Bridge does not supply a game or replace an existing license.
 **[Open the latest release](https://github.com/devigned/vx-bridge/releases/latest)**
 for release notes and downloads. Under **Assets** (expand it if needed), download
 the file whose name starts with `vx-bridge-installer-windows-amd64-` and ends in
-`.zip`. Do not choose the application-only ZIP, separate MSI, `.sha256` checksum
-or **Source code** downloads.
+`.exe`. The version is in the filename. The `.exe.sha256` file is a checksum;
+**Source code** downloads are for developers, not installation. Older releases
+without this EXE retain the files and instructions in their release notes.
 
 1. In ProTee Labs, select **Game Options > Disconnect**. Close any existing
    receiver through its own controls. Do not run two receivers or replace the
    vendor's `GSPconnect.exe`.
-2. Right-click the downloaded ZIP and select **Extract All**. Open the extracted
-   folder. Keep all extracted files together, including `setup.exe` and `bridge.msi`.
-   Do not run Setup from inside the ZIP or mix files from different builds.
-3. Open `setup.exe` as the Windows user who will use the bridge, not as
-   administrator. Select **Install**. Do not double-click `bridge.msi`.
-4. Leave **Auto-launch on Windows Startup** off unless the bridge should open
+2. Open the downloaded installer EXE as the Windows user who will use the
+   bridge, not as administrator. Select **Install**. Everything Setup needs is
+   inside this one file; there is no ZIP to extract or separate MSI to download.
+3. Leave **Auto-launch on Windows Startup** off unless the bridge should open
    when you sign in. It is off on a fresh install.
-5. Wait for Setup to report success. At **Start the bridge now?**, select
+4. Wait for Setup to report success. At **Start the bridge now?**, select
    **Start bridge** to open it once, or **Not now** to open **VX Bridge** from
    Start later. Starting it once does not enable auto-launch.
 

@@ -3,7 +3,7 @@
 [User guides](README.md) / Installation
 
 VX Bridge connects ProTee Labs to your choice of Infinite Tees or GSPro OpenAPI.
-This guide covers the public [v0.1.0 release](releases/v0.1.0.md).
+This guide covers the self-contained Windows installer.
 Read [Limits](#limits) before installing.
 
 ## Before you start
@@ -18,29 +18,25 @@ The bridge needs no separate .NET or browser runtime.
 
 ## Choose the right files
 
-[Download the v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).
-The filename is
-`vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip`.
-Use this ZIP, not the application ZIP or MSI alone. The
-[release page](https://github.com/devigned/vx-bridge/releases/tag/v0.1.0)
-contains these file types. In the patterns below, `vX.Y.Z` is the version and
-`<40sha>` identifies the source commit.
+[Open the latest release](https://github.com/devigned/vx-bridge/releases/latest).
+Under **Assets**, download `vx-bridge-installer-windows-amd64-vX.Y.Z.exe`,
+where `vX.Y.Z` is the release's version. Open that one file. No ZIP extraction,
+adjacent MSI or separate bridge download is needed.
 
 | Files | What they are for |
 |---|---|
-| `vx-bridge-installer-windows-amd64-vX.Y.Z-<40sha>.zip` | Normal installation. Extract it and run `setup.exe` with matching `bridge.msi` beside it. |
-| `vx-bridge-windows-amd64-vX.Y.Z-<40sha>.zip` | Application-only package for separately approved manual/development use. Its six files do not include Setup/MSI. |
-| `vx-bridge-windows-amd64-vX.Y.Z-<40sha>.msi` | Windows Installer package, **not a standalone installer**. It still requires matching Setup; choose the installer ZIP instead. |
+| `vx-bridge-installer-windows-amd64-vX.Y.Z.exe` | Normal installation. Contains the matching Setup, MSI and support files. |
+| `vx-bridge-installer-windows-amd64-vX.Y.Z.exe.sha256` | Optional integrity check for that EXE, not an installer. |
 | Source checkout or source archive | Contributing to the project, not a ready-to-run Windows app. |
 
-Each ZIP/MSI has a separate checksum file named `<filename>.sha256`.
+These are the only two uploaded assets. GitHub also supplies source ZIP/tar.gz
+archives. A checksum checks file contents, not who published them.
+Do not use an Actions artifact marked **BUILD ONLY** as an approved installer.
 
-The installer ZIP contains nine files in one folder. Keep them together.
-`setup.exe` and `bridge.msi` must be a matching pair. Do not mix builds or use an
-Actions artifact marked **BUILD ONLY** as an approved installer.
-
-The separate `.sha256` files are optional integrity checks, not installers.
-A checksum checks file contents, not who published them.
+The existing [v0.1.0 release](releases/v0.1.0.md) predates this format. Its
+installer ZIP, separate MSI and application ZIP remain unchanged; use that
+release's recorded extraction steps if it is still the latest release. This
+change does not replace historical downloads or qualify new binaries.
 
 Untagged developer application ZIPs use
 `vx-bridge-windows-amd64-<revision>.zip`. See
@@ -52,16 +48,13 @@ not these setup steps, for development packages.
 1. In ProTee Labs, select **Game Options > Disconnect**. Close any existing
    receiver through its own controls. For VX Bridge, select **Quit** after Labs
    disconnects. Do not run two receivers or overwrite the vendor's `GSPconnect.exe`.
-2. Right-click the installer ZIP and select **Extract All**. Open the extracted
-   folder. Do not run Setup from inside the ZIP.
-3. Open `setup.exe` as the Windows user who will use the bridge, not as
-   administrator. Select **Install** for a fresh install. Do not double-click
-   `bridge.msi`.
-4. Leave **Auto-launch on Windows Startup** off unless the bridge should open
+2. Open the downloaded installer EXE as the Windows user who will use the
+   bridge, not as administrator. Select **Install** for a fresh install.
+3. Leave **Auto-launch on Windows Startup** off unless the bridge should open
    when you sign in. Its helper says **Starts when you sign in to Windows.**
    It is off on a fresh install; maintenance preserves a verified preference
    unless you change it.
-5. Wait for Setup to report success. At **Start the bridge now?**, select
+4. Wait for Setup to report success. At **Start the bridge now?**, select
    **Start bridge** to open it once, or **Not now** to open **VX Bridge** from the
    Windows Start menu later.
 
@@ -100,10 +93,12 @@ See [everyday use](USAGE.md#choose-a-destination).
 
 ## Limits
 
-v0.1.0 passed automated build and static file checks. Interactive installation,
-Windows sign-in, installer servicing and live Labs/game use, including GSPro
-and game switching, remain unqualified for these binaries. Earlier installer
-and equipment observations used different builds; see
+v0.1.0 passed automated build and static file checks. The self-contained
+installer is a later source change, not a replacement or new qualification of
+that release. Interactive installation, Windows sign-in, installer servicing
+and live Labs/game use, including GSPro and game switching, remain unqualified
+for rebuilt binaries. Earlier installer and equipment observations used
+different builds; see
 [qualification](technical/QUALIFICATION.md).
 
 The Windows programs and installer are not publisher-signed (Authenticode).
@@ -116,8 +111,11 @@ Opening VX Bridge from its executable, Start shortcut or Windows sign-in does
 
 For a damaged installation or **Repair required** message, open **VX Bridge
 Setup** from Start and choose **Repair / Reinstall**. The bridge does not need to
-work first. If Setup's saved installation source is missing, use the original
-verified `setup.exe` and its matching `bridge.msi`. Windows' raw Modify/Repair
+work first. If Setup's saved installation source is missing, open the original
+verified installer EXE for that installed build. Keep it for exceptional recovery;
+normal repair uses the saved Setup/MSI and does not need the download.
+For older ZIP releases, retain the original matching extracted pair.
+Windows' raw Modify/Repair
 buttons are disabled; use Setup rather than trying to bypass its checks.
 
 Before maintenance, disconnect in Labs normally and Quit. If Setup says
@@ -139,8 +137,10 @@ recovery or permission to start the remaining bridge.
 
 Normal uninstall uses Windows' registered package. If that cache is damaged,
 recovery may need the verified original MSI for each recorded version with
-`REMOVE=ALL`; this is an explicit uninstall route, not permission to install a
-raw MSI. Don't guess product identities, delete Windows Installer records or
+`REMOVE=ALL`. A maintainer can extract matching media from the original EXE
+without installing it; see the [Setup command reference](technical/COMMANDS.md#setup1).
+This is an explicit uninstall route, not permission to install a raw MSI.
+Don't guess product identities, delete Windows Installer records or
 manually purge settings to make a failed operation look successful. See the
 [recovery FAQ](FAQ.md#vx-bridge-reports-repair-required) and
 [installer manual](technical/INSTALLER.md) for the supported boundaries.

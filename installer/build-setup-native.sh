@@ -26,6 +26,9 @@ libraries=(-lmsi -ladvapi32 -lole32 -lshell32 -luuid -lbcrypt -lcomctl32 -luser3
 x86_64-w64-mingw32-windres -I "$root/installer/setup" "$root/installer/setup/setup.rc" "$OUT/setup-resource.o"
 "$cc" "${flags[@]}" -municode -mwindows -o "$OUT/setup.exe" "$root/installer/setup/launcher.c" \
   "${sources[@]}" "$OUT/setup-resource.o" "${libraries[@]}"
+"$cc" "${flags[@]}" "-DVX_SOURCE_REVISION=\"$REVISION\"" -ffunction-sections -fdata-sections \
+  -Wl,--gc-sections -municode -mwindows -o "$OUT/bundle-stub.exe" "$root/installer/setup/bundle.c" \
+  "${sources[@]}" "$OUT/setup-resource.o" "${libraries[@]}"
 "$cc" "${flags[@]}" -municode -o "$OUT/private-root-tests.exe" "$root/installer/setup/test_root.c" \
   "${sources[@]}" "${libraries[@]}"
 "$cc" "${flags[@]}" -municode -o "$OUT/private-remove-tests.exe" "$root/installer/setup/test_remove.c" \
@@ -34,4 +37,4 @@ printf 'source_revision=%s\n' "$REVISION" > "$OUT/native-inputs.txt"
 sha256sum "$root"/installer/setup/*.[ch] "$root/installer/setup/setup.rc" "$root/installer/setup/setup.manifest" \
   "$root/installer/managed/state.c" "$root/installer/managed/state.h" >> "$OUT/native-inputs.txt"
 "$cc" --version >> "$OUT/native-inputs.txt"
-(cd "$OUT" && sha256sum setup.exe setup-actions.dll private-root-tests.exe private-remove-tests.exe > native-SHA256SUMS)
+(cd "$OUT" && sha256sum setup.exe setup-actions.dll bundle-stub.exe private-root-tests.exe private-remove-tests.exe > native-SHA256SUMS)

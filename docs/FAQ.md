@@ -4,13 +4,14 @@
 
 ## Where is the installer?
 
-[Download the public v0.1.0 installer ZIP](https://github.com/devigned/vx-bridge/releases/download/v0.1.0/vx-bridge-installer-windows-amd64-v0.1.0-5401cf26d19238b04ba3dbb8ecfa60442616ca79.zip).
-Select **Extract All**, keep all nine files together, and open `setup.exe` from
-the extracted folder with matching `bridge.msi` beside it. Do not install the
-bare MSI.
+[Open the latest release](https://github.com/devigned/vx-bridge/releases/latest).
+Download `vx-bridge-installer-windows-amd64-vX.Y.Z.exe` and open it normally,
+not as administrator. It contains Setup, the matching MSI and support files.
+The `.exe.sha256` file is a checksum, not a second installer.
 
-The application ZIP, source archives and **BUILD ONLY** artifacts are not the
-installer. See [file types](INSTALL.md#choose-the-right-files) and
+Older releases, including [v0.1.0](releases/v0.1.0.md), retain their original
+ZIP downloads and extraction instructions. Source archives and **BUILD ONLY**
+artifacts are not the installer. See [file types](INSTALL.md#choose-the-right-files) and
 [tested scope](#which-versions-and-features-have-been-checked).
 
 ## Windows blocks Setup
@@ -133,7 +134,8 @@ Don't launch an extra `GSPconnect.exe` to perform a control command.
 Ordinary startup does not run Windows Installer or attempt automatic repair.
 Open **VX Bridge Setup** from Start and choose **Repair / Reinstall**.
 The bridge need not work first. If Setup cannot find its saved source, use the
-original verified `setup.exe` with its matching `bridge.msi`.
+original verified installer EXE for that build. Older ZIP releases need their
+original matching extracted Setup/MSI pair.
 
 **Repair does not always fix a failed upgrade.** It can restore files while
 leaving more than one registered version, so Setup must still refuse to start
@@ -148,8 +150,10 @@ install fresh. Removing only one version is not completed recovery.
 
 Normal removal uses **Windows Settings > Apps > Installed apps > VX Bridge >
 Uninstall**. A damaged Windows Installer cache may require each recorded
-version's verified original MSI with `REMOVE=ALL`. That explicit recovery route
-is not a raw-MSI install instruction. Don't guess identities, delete installer
+version's verified original MSI with `REMOVE=ALL`. A maintainer can use the
+original EXE's `/extract` option to save that media without installing it.
+That explicit recovery route is not a raw-MSI install instruction.
+Don't guess identities, delete installer
 records or manually purge folders to make the remaining copy appear healthy.
 Remaining registrations or bridge-owned files are not successful recovery,
 even if one command reported success.

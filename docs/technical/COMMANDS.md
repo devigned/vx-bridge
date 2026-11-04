@@ -219,7 +219,8 @@ These commands produce native inputs and static authoring evidence only.
 They do not install a product, load a callback DLL, start the bridge, or
 qualify a user machine.
 
-**`make build-setup-native`** cross-builds native Setup/actions on the selected
+**`make build-setup-native`** cross-builds native Setup/actions and the separate
+outer `bundle-stub.exe` on the selected
 Linux-amd64 toolchain. It requires clean exact `REVISION`, a new external
 `OUT`, and the [pinned native prerequisites](INSTALLER.md#build-tooling-and-static-verification).
 
@@ -249,16 +250,30 @@ native DLL. Old private/outer/wixl helpers are
 [investigation history](research/README.md#installer-and-automation-records),
 not alternate production build recipes.
 
-**`make package-installer`** assembles verified authored Setup output with its
-matching application archive. It requires `AUTHORED_SETUP`, `ARCHIVE`,
-`MINGW_COPYRIGHT`, and new external `OUT`. The pinned compiler copyright
-record is required package provenance, not optional decoration.
+**`make package-installer`** embeds verified authored Setup output and its
+matching original application archive in a native self-contained EXE. It
+requires `AUTHORED_SETUP`, `ARCHIVE`, `MINGW_COPYRIGHT`, `BUNDLE_STUB`, and new
+external `OUT`. The stub must come from the matching native build; the pinned
+compiler copyright record is required package provenance, not optional
+decoration. Output contains exactly the installer EXE and `.exe.sha256`,
+not a separate MSI, ZIP or notices asset.
 
-**`make verify-installer`** checks an existing installer bundle against
-`ARCHIVE`, `INSTALLER_ARCHIVE`, exact `REVISION`, and `RELEASE_VERSION`.
-It is static integrity verification, not installation or a qualification
+**`make verify-installer`** checks the existing EXE named by
+`INSTALLER_ARCHIVE`, exact `REVISION`, and `RELEASE_VERSION`. It verifies
+the embedded original app ZIP as well as native/installer metadata and
+hashes; no separate `ARCHIVE` input is needed. It is static integrity
+verification, not installation or a qualification
 verdict. Bundle entries and release filenames are described in
 [Automation](AUTOMATION.md#installer-artifacts).
+
+For an existing tagged installer, replace the example version/source with
+its actual recorded identity:
+
+```sh
+REVISION='<exact-40-character-source-SHA>' RELEASE_VERSION=vX.Y.Z \
+  INSTALLER_ARCHIVE='/external/vx-bridge-installer-windows-amd64-vX.Y.Z.exe' \
+  make verify-installer
+```
 
 **`make install-setup-toolchain`** explicitly provisions the pinned compiler
 on the configured Linux builder. Unlike static verification, this changes
@@ -284,16 +299,42 @@ setup - install or maintain a verified per-user VX Bridge package
 ### SYNOPSIS
 
 ```text
+vx-bridge-installer-windows-amd64-vX.Y.Z.exe [/quiet] [/maintain]
+vx-bridge-installer-windows-amd64-vX.Y.Z.exe [/quiet] /extract NEW_ABSOLUTE_DIRECTORY
+vx-bridge-installer-windows-amd64-vX.Y.Z.exe [/quiet] /remove
 setup.exe [/quiet] [/maintain] [/package PATH]
 setup.exe [/quiet] /remove
 ```
 
 ### DESCRIPTION
 
-Native Setup is explicit maintenance, not an ordinary-start broker.
-Run it normally as the installing user. With no explicit package, it uses
+The public EXE contains the matching native Setup/MSI pair and support files.
+Open it normally as the installing user. It verifies and privately stages
+its media, runs inner Setup with that explicit MSI, waits through completion
+or cancellation, then removes only its owned staging files. It does not
+download dependencies, require administrator access or replace MSI servicing.
+
+`/extract` saves verified original media to a new absolute local folder
+whose parent exists. It does not execute Setup/MSI or modify the managed
+installation. Destinations in the managed application or state roots,
+existing directories, reparse paths and noncanonical paths
+refuse. This is for notice inspection or separately approved recovery, not
+the normal install route. For example, from PowerShell with a real version
+and a new folder under an existing parent:
+
+```powershell
+.\vx-bridge-installer-windows-amd64-vX.Y.Z.exe /extract 'C:\Users\YOUR_USER\Downloads\vx-bridge-original-media'
+```
+
+Keep all extracted files together. Do not mix builds or install a raw MSI.
+The embedded `application.zip` is verification evidence, not another public
+download or migration route.
+
+The inner/cached `setup.exe` remains explicit maintenance, not an ordinary-start
+broker. With no explicit package, it uses
 the verified recorded/cached source or adjacent `bridge.msi`. `/package`
-selects source media for verification, not an ownership bypass.
+selects source media for verification, not an ownership bypass, and is an
+inner-Setup option rather than an outer-bundle option.
 `/maintain` is the cached maintenance entry, not a different transaction
 policy. `/quiet` suppresses choices and never launches the bridge.
 
@@ -303,10 +344,13 @@ Normal Uninstall is Windows Installer-owned.
 
 ### EXIT STATUS
 
-**0** means verified usable installation/maintenance completion.
+**0** means verified usable installation/maintenance completion, or verified
+media extraction when `/extract` was requested.
 **1** means refusal or incomplete maintenance.
 **2** means invalid arguments or canceled initial choice.
 **120** (`ERROR_CALL_NOT_IMPLEMENTED`) is the directions-only `/remove` result.
+The outer launcher propagates inner Setup's result and reports its own
+verification, process-observation or staging-cleanup failures as nonsuccess.
 MSI engine status is recorded separately; engine zero alone is not usable
 completion. See [Installation](INSTALLER.md#recovery-after-failure).
 

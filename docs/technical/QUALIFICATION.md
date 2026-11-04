@@ -42,6 +42,11 @@ servicing or live Labs/game compatibility. The Windows programs and installer
 are not Authenticode-signed. Signed source commits and tags do not sign those
 files.
 
+The later self-contained EXE pipeline is a source change, not a replacement
+of these historical assets. Its build/static tests do not establish Windows
+extraction, process lifetime, cancellation, cleanup or MSI servicing behavior.
+No new installer lifecycle or equipment trial is authorized by this change.
+
 ## Installer observations
 
 A prior private candidate passed ordinary CI and a separately authorized

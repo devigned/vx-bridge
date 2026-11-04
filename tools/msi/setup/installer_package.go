@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"time"
 )
 
 var installerFiles = []string{"setup.exe", "bridge.msi", "setup-input.json", "msi-inspection.json",
@@ -22,26 +21,39 @@ var installerFiles = []string{"setup.exe", "bridge.msi", "setup-input.json", "ms
 var packageCodePattern = regexp.MustCompile(`^\{[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12}\}$`)
 var packageHashPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
-func installerNames(revision, version string) (string, string, string) {
+func installerNames(revision, version string) (string, string) {
 	identity := revision
+	publicIdentity := revision
 	if version != "development" {
 		identity = version + "-" + revision
+		publicIdentity = version
 	}
 	return "vx-bridge-windows-amd64-" + identity + ".zip",
-		"vx-bridge-installer-windows-amd64-" + identity + ".zip",
-		"vx-bridge-windows-amd64-" + identity + ".msi"
+		"vx-bridge-installer-windows-amd64-" + publicIdentity + ".exe"
 }
 
-func installerPackage(revision, version, archive, authored, copyright, out, verify string, extra int) error {
+func installerPackage(revision, version, archive, authored, copyright, stubPath, out, verify string, extra int) error {
 	if len(revision) != 40 || strings.Trim(revision, "0123456789abcdef") != "" || extra != 0 ||
-		archive == "" || (authored == "") == (verify == "") {
-		return errors.New("require exact revision/version/application ZIP and either -installer or -verify-installer")
+		(authored == "") == (verify == "") {
+		return errors.New("require exact revision/version and either -installer or -verify-installer")
 	}
 	if _, err := numeric(version); err != nil {
 		return err
 	}
-	if (verify != "" && (out != "" || copyright != "")) || (authored != "" && (out == "" || copyright == "")) {
-		return errors.New("only installer packaging requires -out and -copyright")
+	if (verify != "" && (out != "" || copyright != "" || stubPath != "" || archive != "")) ||
+		(authored != "" && (out == "" || copyright == "" || stubPath == "" || archive == "")) {
+		return errors.New("only installer packaging requires -archive, -out, -copyright and -bundle-stub")
+	}
+	applicationName, installerName := installerNames(revision, version)
+	if verify != "" {
+		if filepath.Base(verify) != installerName {
+			return errors.New("installer filename differs from exact version")
+		}
+		data, err := readPackageFile(verify)
+		if err != nil {
+			return err
+		}
+		return verifyInstallerEXE(data, revision, version)
 	}
 	if err := command("go", "run", "-mod=readonly", "./tools/dist", "-revision", revision, "-version", version, "-verify", archive); err != nil {
 		return fmt.Errorf("authoritative application verification: %w", err)
@@ -50,16 +62,8 @@ func installerPackage(revision, version, archive, authored, copyright, out, veri
 	if err != nil {
 		return err
 	}
-	applicationName, installerName, msiName := installerNames(revision, version)
-	if filepath.Base(archive) != applicationName || (verify != "" && filepath.Base(verify) != installerName) {
+	if filepath.Base(archive) != applicationName {
 		return errors.New("archive filename differs from exact source/version")
-	}
-	if verify != "" {
-		payload, err := readPackageZIP(verify, append(slices.Clone(installerFiles), "SHA256SUMS"))
-		if err != nil {
-			return err
-		}
-		return verifyInstallerPayload(payload, app, revision, version)
 	}
 	head, err := exec.Command("git", "rev-parse", "HEAD").Output()
 	if err != nil || strings.TrimSpace(string(head)) != revision {
@@ -88,6 +92,18 @@ func installerPackage(revision, version, archive, authored, copyright, out, veri
 	if err := verifyInstallerPayload(payload, app, revision, version); err != nil {
 		return err
 	}
+	stub, err := readPackageFile(stubPath)
+	if err != nil {
+		return err
+	}
+	payload["application.zip"], err = readPackageFile(archive)
+	if err != nil {
+		return err
+	}
+	bundle, err := installerEXE(stub, payload, revision)
+	if err != nil {
+		return err
+	}
 	if !filepath.IsAbs(out) {
 		return errors.New("installer output must be a new absolute external directory")
 	}
@@ -107,32 +123,23 @@ func installerPackage(revision, version, archive, authored, copyright, out, veri
 	if err := os.Mkdir(out, 0o755); err != nil {
 		return err
 	}
-	if err := writeInstallerZIP(filepath.Join(out, installerName), payload); err != nil {
-		return err
-	}
-	archiveBytes, err := readPackageFile(archive)
+	file, err := os.OpenFile(filepath.Join(out, installerName), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
-	for name, data := range map[string][]byte{applicationName: archiveBytes, msiName: payload["bridge.msi"]} {
-		if err := os.WriteFile(filepath.Join(out, name), data, 0o644); err != nil {
-			return err
-		}
+	_, writeErr := file.Write(bundle)
+	if err := errors.Join(writeErr, file.Close()); err != nil {
+		return err
 	}
-	for _, name := range []string{applicationName, installerName, msiName} {
-		data, err := readPackageFile(filepath.Join(out, name))
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(out, name+".sha256"), []byte(digest(data)+"  "+name+"\n"), 0o644); err != nil {
-			return err
-		}
+	if err := os.WriteFile(filepath.Join(out, installerName+".sha256"),
+		[]byte(digest(bundle)+"  "+installerName+"\n"), 0o644); err != nil {
+		return err
 	}
-	written, err := readPackageZIP(filepath.Join(out, installerName), append(slices.Clone(installerFiles), "SHA256SUMS"))
+	written, err := readPackageFile(filepath.Join(out, installerName))
 	if err != nil {
 		return err
 	}
-	if err := verifyInstallerPayload(written, app, revision, version); err != nil {
+	if err := verifyInstallerEXE(written, revision, version); err != nil {
 		return err
 	}
 	fmt.Println(out)
@@ -155,6 +162,10 @@ func readPackageZIP(path string, names []string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return readPackageZIPBytes(data, names)
+}
+
+func readPackageZIPBytes(data []byte, names []string) (map[string][]byte, error) {
 	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
 		return nil, err
@@ -268,28 +279,6 @@ func verifyInstallerPayload(payload, app map[string][]byte, revision, version st
 	for _, name := range []string{"LICENSE", "THIRD_PARTY_NOTICES.txt"} {
 		if !bytes.Equal(payload[name], app[name]) {
 			return errors.New("installer application notices differ")
-		}
-	}
-	return nil
-}
-
-func writeInstallerZIP(path string, payload map[string][]byte) (result error) {
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	defer func() { result = errors.Join(result, file.Close()) }()
-	writer := zip.NewWriter(file)
-	defer func() { result = errors.Join(result, writer.Close()) }()
-	for _, name := range append(slices.Clone(installerFiles), "SHA256SUMS") {
-		header := &zip.FileHeader{Name: name, Method: zip.Deflate, Modified: time.Unix(0, 0).UTC()}
-		header.SetMode(0o644)
-		entry, err := writer.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-		if _, err := entry.Write(payload[name]); err != nil {
-			return err
 		}
 	}
 	return nil

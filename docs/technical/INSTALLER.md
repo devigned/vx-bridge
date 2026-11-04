@@ -18,6 +18,52 @@ Interactive/client-PC operation, actual sign-in, Apps UI, Start bridge and
 attached-Labs maintenance remain unqualified. See
 [Qualification](QUALIFICATION.md#installer-observations) for the recorded scope.
 
+## Self-contained media
+
+Future releases upload one version-named setup EXE and its `.exe.sha256`;
+GitHub supplies source archives separately. The existing v0.1.0 downloads
+remain in their original ZIP/MSI format.
+
+A thin native outer EXE carries the unchanged verified `setup.exe`/`bridge.msi`
+pair, authoring metadata, notices, checksums and the original application
+archive. Inner Setup remains hash-bound in the MSI. The outer EXE neither
+implements a second MSI engine nor changes the persisted compatibility
+identities.
+
+The outer launcher refuses elevation. It validates its exact-source overlay
+and all full-byte hashes before creating a fresh GUID-named staging directory
+under the current user's canonical LocalAppData. Ancestors are pinned;
+directories/files reject reparse points, files reject hardlinks, and new
+files use exclusive creation with an installing-user/System-only ACL.
+Reopened file identity and SHA-256 must agree, and read pins deny writes and
+deletion through the child process's entire lifetime. MSI receipt/source
+and inner Setup-owner hash are checked before dispatch.
+
+Each invocation has its own staging directory. Inner Setup's existing owner
+mutex and admission rules still serialize actual servicing. The outer launcher
+passes the embedded MSI explicitly, not a possibly older cached selection.
+Cancellation and guarded Quit remain inner Setup's responsibility. The
+launcher waits for the child, never terminates it, and returns its result.
+Verified cleanup removes only the objects created by that invocation, checking
+file identity again under pinned ancestors. Unexpected contents or cleanup
+failure reports nonsuccess; it does not claim rollback. An unknown child
+lifetime preserves its media. A forcibly terminated outer process can leave
+an orphan staging folder; no later invocation scans or recursively purges it.
+
+Successful installation caches the inner Setup and exact MSI in the existing
+passive maintenance root. Repair/Uninstall use those owned records, not the
+download location or another automatic extraction. The outer download is
+neither adopted into the cache nor removed by Uninstall. Ordinary application
+startup is unchanged and never invokes the bundle or MSI.
+
+For inspection or exceptional original-media recovery, `/extract` writes
+the verified internal files to an explicitly selected new absolute local
+directory without running Setup. It never overwrites an existing folder.
+See [Setup commands](COMMANDS.md#setup1). Keep that original media together;
+an MSI extracted this way is not a standalone-install interface. Installer
+and compiler notices remain available inside the EXE and through extraction;
+the application license/notices also remain in the six-file installed payload.
+
 ## Managed-copy admission
 
 The application root is fixed:
@@ -197,7 +243,8 @@ binutils, and official WiX 3.14.1 under MS-RL. WiX's public community security
 support ended on 2025-02-06; this is not a maintained-toolchain or private
 extended-support claim.
 
-Native Setup and actions are C code using the actual MSI handle. WiX
+Native outer bundle, Setup and actions are C code; Setup/actions use the actual
+MSI handle. WiX
 candle/light need a compatible .NET Framework on the **build machine**; the build checks for
 it and does not install a runtime. The emitted native code imports Windows
 system DLLs, not a separately shipped CLR or compiler runtime.
@@ -206,6 +253,8 @@ The build consumes the authoritative six-entry Go ZIP rather than relinking
 the application or harvesting arbitrary files. Prepared metadata has no
 guessed PackageCode: WiX generates it, and actual MSI Summary Information
 property 9 is bound to the delivered MSI hash in final metadata.
+The bundle adds no hash cycle: the native outer stub is built separately,
+then combined with the already authored, hash-bound inner Setup/MSI pair.
 An independently rebuilt same-source/same-version MSI can have a different
 PackageCode and is not equivalent Repair media. Its full-media hash is also
 not a hash of Windows Installer's cached `LocalPackage`.

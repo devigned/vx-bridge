@@ -28,7 +28,8 @@ departure, rather than a Quit request, controls teardown.
 
 [Desktop integration](DESKTOP.md) covers the tray, local control, and sign-in
 registration. [Installation and recovery](INSTALLER.md) describes managed-copy
-admission, conventional MSI servicing, and the full-Uninstall contract.
+admission, the self-contained native EXE, conventional MSI servicing, and the
+full-Uninstall contract.
 [Security and data ownership](SECURITY.md) defines local storage, trust, and
 license boundaries.
 

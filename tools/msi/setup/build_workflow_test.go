@@ -75,9 +75,7 @@ func TestPublicRepositoryAndArtifactIdentity(t *testing.T) {
 		},
 		"../../../.github/scripts/publish-tag-release.sh": {
 			`--arg name "vx-bridge-tag-assets-$RELEASE_VERSION-$SOURCE_REVISION"`,
-			`archive="vx-bridge-windows-amd64-$RELEASE_VERSION-$SOURCE_REVISION.zip"`,
-			`installer="vx-bridge-installer-windows-amd64-$RELEASE_VERSION-$SOURCE_REVISION.zip"`,
-			`msi="vx-bridge-windows-amd64-$RELEASE_VERSION-$SOURCE_REVISION.msi"`,
+			`installer="vx-bridge-installer-windows-amd64-$RELEASE_VERSION.exe"`,
 		},
 		"../lifecycle/workflow.yml": {
 			"github.repository == 'devigned/vx-bridge' && github.event.repository.private && !github.event.repository.fork",
@@ -295,12 +293,12 @@ func TestMinimalWorkflowsShareExactBuildAndReadOnlyBoundaries(t *testing.T) {
 		}
 	}
 	for _, required := range []string{"make build-setup-native", "make package", "make prepare-setup",
-		"git show", "INPUT-SHA256SUMS", `"$count" == 11`} {
+		"git show", "INPUT-SHA256SUMS", `"$count" == 13`, "bundle-stub.exe"} {
 		if !strings.Contains(input, required) {
 			t.Fatal("native/input build lost authoritative provenance", required)
 		}
 	}
-	for _, required := range []string{"sourceHashes.Count -ne 11", "input_artifact_digest",
+	for _, required := range []string{"sourceHashes.Count -ne 13", "input_artifact_digest", "bundle-stub.exe",
 		"'prepare-setup'", "'build-setup-msi'", "Windows regeneration differs",
 		"native-tools.log", "outcome.json", "throw", "'package-installer'", "Language.Parser]::ParseFile"} {
 		if !strings.Contains(windows, required) {

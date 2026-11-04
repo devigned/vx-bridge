@@ -47,7 +47,7 @@ while IFS= read -r line; do
     count=$((count+1))
   fi
 done < "$bundle/native/native-inputs.txt"
-[[ "$count" == 11 ]]
+[[ "$count" == 13 ]]
 (
   cd "$bundle"
   sha256sum native/setup.exe native/setup-actions.dll native/native-inputs.txt native/native-SHA256SUMS \
