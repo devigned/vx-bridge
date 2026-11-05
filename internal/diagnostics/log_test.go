@@ -132,6 +132,7 @@ func TestMultiGameEventsRemainActionableWithoutBroadeningRedaction(t *testing.T)
 		"destination_change_already_pending", "destination_change_blocked_quit", "destination_change_blocked_source_fault",
 		"invalid_destination", "upstream_response_discarded_destination_switch_pending",
 		"destination_change_pending", "destination_change_failed", "destination_preference_save_failed",
+		"gspro_notification_202_observed_not_receipt", "gspro_notification_203_observed_not_receipt",
 	}
 	for _, code := range codes {
 		if err := logger.WriteEvent(bridge.Event{At: time.Now().UTC(), Reason: code}); err != nil {
@@ -139,6 +140,9 @@ func TestMultiGameEventsRemainActionableWithoutBroadeningRedaction(t *testing.T)
 		}
 	}
 	if err := logger.WriteEvent(bridge.Event{Reason: "destination_change_PRIVATE_DEVICE", Alias: 987654321}); err != nil {
+		t.Fatal(err)
+	}
+	if err := logger.WriteEvent(bridge.Event{Reason: "gspro_notification_202_PRIVATE_PLAYER", Alias: 987654321}); err != nil {
 		t.Fatal(err)
 	}
 	if err := closeLogger(t, logger); err != nil {
@@ -153,7 +157,8 @@ func TestMultiGameEventsRemainActionableWithoutBroadeningRedaction(t *testing.T)
 			t.Fatal("reviewed multi-game event was hidden as unknown", code)
 		}
 	}
-	if bytes.Contains(data, []byte("PRIVATE_DEVICE")) || bytes.Contains(data, []byte("987654321")) ||
+	if bytes.Contains(data, []byte("PRIVATE_DEVICE")) || bytes.Contains(data, []byte("PRIVATE_PLAYER")) ||
+		bytes.Contains(data, []byte("987654321")) ||
 		!bytes.Contains(data, []byte("unrecognized_event_redacted_")) {
 		t.Fatal("destination event prefix bypassed privacy redaction")
 	}

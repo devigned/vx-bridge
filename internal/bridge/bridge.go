@@ -684,6 +684,14 @@ func (e *engine) handle(ev event) {
 				e.wait.receipt = ev.frame
 				e.acceptReceipt()
 			} else {
+				if e.dst.profile == destination.GSPro {
+					switch code {
+					case 202:
+						e.log("gspro_notification_202_observed_not_receipt", 0)
+					case 203:
+						e.log("gspro_notification_203_observed_not_receipt", 0)
+					}
+				}
 				if e.switching {
 					e.recordReplyDiscard(code, "destination_switch_pending")
 				} else {
