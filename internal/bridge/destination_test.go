@@ -60,6 +60,51 @@ func TestInitialDestinationUsesOnlySelectedProfile(t *testing.T) {
 	}
 }
 
+func TestGSProNotificationsPreserveSessionWithoutAcceptingShots(t *testing.T) {
+	h := configuredHarness(t, true, nil, nil, func(config *Config) {
+		config.Destination = destination.GSPro
+	})
+	target := h.target()
+	notifications := []string{
+		`{"Code":202,"Message":"synthetic ready","Player":null,"Extra":-0.00}`,
+		`{"Code":203,"Message":"synthetic round ended","Player":null}`,
+	}
+	relayNotifications := func() {
+		t.Helper()
+		target.send(t, []byte(strings.Join(notifications, "")))
+		for _, want := range notifications {
+			if got := string(h.labs.frame(t)); got != want {
+				t.Fatal("notification bytes changed", got)
+			}
+		}
+	}
+	relayNotifications()
+	assertOneTargetConnection(t, h, 0)
+	for index, id := range []string{"1", "2"} {
+		previous := uint64(index)
+		want := gameShot(id)
+		h.labs.send(t, want)
+		if !bytes.Equal(target.frame(t), want) {
+			t.Fatal("notification changed shot bytes or eligibility")
+		}
+		h.wait(func(s Snapshot) bool { return s.Counts.Sent == previous+1 })
+		relayNotifications()
+		state := h.state(false)
+		if state.Counts.TargetAccept != previous || state.Counts.SourceACK != previous ||
+			state.Ready != "unknown" || state.TargetGeneration != 1 || h.fake.dials.Load() != 1 {
+			t.Fatal("notification settled a receipt, declared ready or retired the session", state)
+		}
+		h.labs.silent(t, 10*time.Millisecond)
+		target.send(t, []byte(acceptance))
+		if got := string(h.labs.frame(t)); got != acceptance {
+			t.Fatal("actual receipt changed")
+		}
+		assertOneTargetConnection(t, h, previous+1)
+		relayNotifications()
+		assertOneTargetConnection(t, h, previous+1)
+	}
+}
+
 func TestGameSwitchSettlesOldReceiptRetainsSourceAndNeverFansOut(t *testing.T) {
 	addresses := make(chan string, 8)
 	h := configuredHarness(t, true, nil, nil, func(config *Config) {

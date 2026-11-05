@@ -74,8 +74,8 @@ func TestResponseProfilesDoNotInventReadinessOrBroadenIT(t *testing.T) {
 		code   string
 		it, gs bool
 	}{
-		{"200", true, true}, {"201", true, true}, {"202", true, false},
-		{"203", true, false}, {"500", true, true}, {"501", true, true},
+		{"200", true, true}, {"201", true, true}, {"202", true, true},
+		{"203", true, true}, {"204", false, false}, {"500", true, true}, {"501", true, true},
 		{"503", false, true}, {"599", false, true}, {"600", false, false},
 		{`"200"`, false, false}, {"200.0", false, false},
 	} {
@@ -88,6 +88,24 @@ func TestResponseProfilesDoNotInventReadinessOrBroadenIT(t *testing.T) {
 			}
 			if (err == nil) != want {
 				t.Fatal("wrong response admission", profile, test.code, err)
+			}
+		}
+	}
+}
+
+func TestGSProNotificationsStillRequireStrictResponseEnvelopes(t *testing.T) {
+	for _, code := range []string{"202", "203"} {
+		for _, bad := range []string{
+			`{"Code":` + code + `}`,
+			`{"Code":` + code + `,"Message":null}`,
+			`{"Code":` + code + `,"Message":"synthetic","Player":[]}`,
+			`{"Code":` + code + `,"Code":` + code + `,"Message":"synthetic"}`,
+			`{"Code":"` + code + `","Message":"synthetic"}`,
+			`{"Code":` + code + `.0,"Message":"synthetic"}`,
+			`{"Code":` + code + `,"Message":"synthetic","Extra":{"x":1,"x":2}}`,
+		} {
+			if _, err := GSPro.Response([]byte(bad)); err == nil {
+				t.Fatal("notification bypassed strict response validation", bad)
 			}
 		}
 	}
