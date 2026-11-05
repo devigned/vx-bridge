@@ -60,6 +60,109 @@ func TestInitialDestinationUsesOnlySelectedProfile(t *testing.T) {
 	}
 }
 
+func TestGSProNotificationsPreserveSessionWithoutAcceptingShots(t *testing.T) {
+	h := configuredHarness(t, true, nil, nil, func(config *Config) {
+		config.Destination = destination.GSPro
+	})
+	target := h.target()
+	notifications := []string{
+		`{"Code":202,"Message":"synthetic ready","Player":null,"Extra":-0.00}`,
+		`{"Code":203,"Message":"synthetic round ended","Player":null}`,
+	}
+	relayNotifications := func() {
+		t.Helper()
+		target.send(t, []byte(strings.Join(notifications, "")))
+		for _, want := range notifications {
+			if got := string(h.labs.frame(t)); got != want {
+				t.Fatal("notification bytes changed", got)
+			}
+		}
+	}
+	relayNotifications()
+	assertOneTargetConnection(t, h, 0)
+	for index, id := range []string{"1", "2"} {
+		previous := uint64(index)
+		want := gameShot(id)
+		h.labs.send(t, want)
+		if !bytes.Equal(target.frame(t), want) {
+			t.Fatal("notification changed shot bytes or eligibility")
+		}
+		h.wait(func(s Snapshot) bool { return s.Counts.Sent == previous+1 })
+		relayNotifications()
+		state := h.state(false)
+		if state.Counts.TargetAccept != previous || state.Counts.SourceACK != previous ||
+			state.Ready != "unknown" || state.TargetGeneration != 1 || h.fake.dials.Load() != 1 {
+			t.Fatal("notification settled a receipt, declared ready or retired the session", state)
+		}
+		h.labs.silent(t, 10*time.Millisecond)
+		target.send(t, []byte(acceptance))
+		if got := string(h.labs.frame(t)); got != acceptance {
+			t.Fatal("actual receipt changed")
+		}
+		assertOneTargetConnection(t, h, previous+1)
+		relayNotifications()
+		assertOneTargetConnection(t, h, previous+1)
+	}
+}
+
+func TestNotificationClassificationRetainsPendingReceiptAndExactRelay(t *testing.T) {
+	for _, profile := range []destination.ID{destination.GSPro, destination.InfiniteTees} {
+		for _, code := range []int{202, 203} {
+			t.Run(fmt.Sprintf("%s/%d", profile, code), func(t *testing.T) {
+				e, _ := stateEngine(t)
+				e.dst = &target{gen: 7, profile: profile, cancel: func() {}}
+				e.wait = &pending{token: 11, alias: 1, written: true}
+				e.state.Ready = "unknown"
+				frame := []byte(fmt.Sprintf(`{"Code":%d,"Message":"PRIVATE-MESSAGE","Player":{"Handed":"PRIVATE-PLAYER"},"Unknown":-0.00}`, code))
+				e.handle(event{kind: "target_frame", epoch: 3, gen: 7, token: 11, frame: frame})
+				if e.dst == nil || e.wait == nil || e.wait.token != 11 || e.wait.receipt != nil ||
+					e.state.Counts.TargetAccept != 0 || e.state.Counts.SourceACK != 0 ||
+					e.state.Counts.Uncertain != 0 || e.state.Ready != "unknown" {
+					t.Fatal("notification retired session, settled receipt or declared readiness", e.state)
+				}
+				if e.src.queuedCount != 1 || !bytes.Equal((<-e.src.writes).frame, frame) {
+					t.Fatal("notification relay changed bytes")
+				}
+				if profile == destination.GSPro {
+					want := fmt.Sprintf("gspro_notification_%d_observed_not_receipt", code)
+					if len(e.state.Recent) != 1 || e.state.Recent[0].Reason != want || e.state.Recent[0].Alias != 0 {
+						t.Fatal("notification classification missing or contains private values", e.state.Recent)
+					}
+				} else if len(e.state.Recent) != 0 {
+					t.Fatal("GSPro notification diagnostics changed Infinite Tees")
+				}
+			})
+		}
+	}
+}
+
+func TestGSProNotificationCannotReplaceReceiptOrReplayTimedOutShot(t *testing.T) {
+	h := configuredHarness(t, true, nil, nil, func(config *Config) {
+		config.Destination = destination.GSPro
+	})
+	target := h.target()
+	h.labs.send(t, gameShot("1"))
+	target.frame(t)
+	h.wait(func(s Snapshot) bool { return s.Counts.Sent == 1 })
+	notification := []byte(`{"Code":202,"Message":"synthetic ready","Player":null}`)
+	target.send(t, notification)
+	if !bytes.Equal(h.labs.frame(t), notification) {
+		t.Fatal("notification relay changed")
+	}
+	h.wait(func(s Snapshot) bool { return s.Counts.Uncertain == 1 })
+	recovered := h.target()
+	recovered.silent(t, 10*time.Millisecond)
+	h.labs.silent(t, 10*time.Millisecond)
+	h.labs.send(t, gameShot("1"))
+	h.wait(func(s Snapshot) bool { return s.Counts.Duplicate == 1 })
+	recovered.silent(t, 10*time.Millisecond)
+	state := h.state(false)
+	if state.Counts.Sent != 1 || state.Counts.TargetAccept != 0 || state.Counts.SourceACK != 0 ||
+		state.Ready != "unknown" || state.Source != "attached" {
+		t.Fatal("notification replaced receipt or timed-out shot replayed", state)
+	}
+}
+
 func TestGameSwitchSettlesOldReceiptRetainsSourceAndNeverFansOut(t *testing.T) {
 	addresses := make(chan string, 8)
 	h := configuredHarness(t, true, nil, nil, func(config *Config) {

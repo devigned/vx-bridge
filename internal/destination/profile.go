@@ -119,8 +119,9 @@ func number(raw []byte) bool {
 
 // Response returns a response code permitted by id's profile or
 // [protocol.ErrShape]. InfiniteTees uses [protocol.Response]; GSPro permits
-// 200, 201, and 500 through 599 after envelope validation. Standby and invalid
-// IDs reject responses. A 200 code alone is not a game-ready signal.
+// 200 through 203 and 500 through 599 after envelope validation. Notifications
+// 201 through 203 neither accept a shot nor establish game readiness. Standby
+// and invalid IDs reject responses.
 func (id ID) Response(frame []byte) (int, error) {
 	if id.Default() == InfiniteTees {
 		return protocol.Response(frame)
@@ -129,7 +130,7 @@ func (id ID) Response(frame []byte) (int, error) {
 		return 0, protocol.ErrShape
 	}
 	code, err := protocol.ResponseCode(frame)
-	if err != nil || (code != 200 && code != 201 && (code < 500 || code > 599)) {
+	if err != nil || ((code < 200 || code > 203) && (code < 500 || code > 599)) {
 		return 0, protocol.ErrShape
 	}
 	return code, nil

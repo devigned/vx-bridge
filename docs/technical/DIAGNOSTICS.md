@@ -66,6 +66,13 @@ omitted. Only explicit IPv4 loopback endpoint/port text survives. Windows facts
 are numeric major/minor/build values from the native version API, without a
 machine name or hardware inventory.
 
+Validated GSPro 202 and 203 notifications emit fixed
+`gspro_notification_202_observed_not_receipt` and
+`gspro_notification_203_observed_not_receipt` events. These record only the
+allowlisted code classification, without response text, player values or shot
+data. They do not prove shot acceptance, readiness or visible flight. A generic
+`target_response_profile_invalid` still does not identify the rejected code.
+
 Installer output uses selected operation/boolean/numeric/source-revision fields from
 `setup-result.log`; it excludes the verbose MSI log and debug/authentication
 text, including hexadecimal UI records. No MSI API is called. A result recorded

@@ -46,10 +46,11 @@ numeric `TotalSpin` if that member is supplied, otherwise both numeric
 zeros, conversion, or a success ACK.
 
 GSPro shot bytes are also sent unchanged plus LF. Its response profile admits
-200, 201, and terminal failures 500 through 599. Other codes, including 202
-and 203, invalidate the destination instead of creating a ready state.
-Acceptance of these fields, framing, and responses by an installed GSPro
-build remains unqualified.
+200, player information 201, notifications 202 and 203, and terminal failures
+500 through 599. Notifications are relayed unchanged without settling a shot
+receipt, closing the connection, or setting the bridge's readiness state.
+Other codes invalidate the destination. Acceptance of shot fields, framing,
+and receipts by an installed GSPro build remains unqualified.
 
 ## Split shots and duplicate suppression
 
